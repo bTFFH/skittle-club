@@ -1,0 +1,43 @@
+@import url('https://fonts.googleapis.com/css?family=Lora:400,400i,700,700i|Roboto&subset=cyrillic');
+
+.general-table {
+    flex: auto; /* элемент занимает максимально отводимое ему пространство */
+}
+
+.general-table table {
+    border: 2px solid darkblue;
+    border-collapse: collapse;
+    min-width: 900px;
+    max-width: 1300px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.general-table caption {
+    text-align: center;
+    caption-side: top;
+    font-family: 'Lora', serif;
+    font-size: 28px;
+    font-style: italic;
+}
+
+.general-table th {
+    border-bottom: 2px solid #6f95af;
+    text-align: center;
+    font-family: 'Lora', sans-serif;
+    font-size: 20px;
+    font-style: revert; /* same as default */
+}
+
+.general-table td {
+    border: 1px solid darkslateblue;
+    height: auto;
+    text-align: center;
+    font-family: 'Roboto', sans-serif;
+    font-size: 16px;
+    font-style: normal;
+}
+
+.general-table tr {
+    height: auto;
+}

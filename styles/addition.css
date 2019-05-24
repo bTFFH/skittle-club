@@ -1,0 +1,88 @@
+@import url('https://fonts.googleapis.com/css?family=Lora:400,400i,700,700i|Roboto&subset=cyrillic');
+
+.add-form {
+    flex-basis: 400px;
+    margin-right: auto;
+    margin-left: auto;
+    margin-top: 150px;
+}
+
+.add-form form {
+    border: 4px double cornflowerblue;
+    border-radius: 6px;
+}
+
+.add-form label {
+    padding: 2px 5px;
+    font-family: 'Lora', serif;
+    font-size: 18px;
+    font-style: oblique;
+    margin-left: 5px;
+}
+
+.add-form input {
+    width: 200px;
+    float: right;
+    margin: 0 5px;
+    font-family: 'Roboto', sans-serif;
+    font-size: 16px;
+    font-style: revert;
+}
+
+.add-form textarea {
+    resize: none;
+    width: 200px;
+    height: 60px;
+    float: right;
+    margin: 0 5px;
+    font-family: 'Roboto', sans-serif;
+    font-size: 16px;
+    font-style: revert;
+}
+
+.add-form select {
+    width: 206px;
+    float: right;
+    margin: 0 5px;
+    font-family: 'Roboto', sans-serif;
+    font-size: 16px;
+    font-style: revert;
+}
+
+.add-form output {
+    max-width: 400px;
+    font-family: 'Roboto', sans-serif;
+    font-size: 20px;
+    font-style: normal;
+}
+
+.competition-form {
+    flex-basis: 450px;
+    margin-right: auto;
+    margin-left: auto;
+    margin-top: 150px;
+}
+
+.competition-form label {
+    padding: 2px 5px;
+    font-family: 'Lora', serif;
+    font-size: 18px;
+    font-style: oblique;
+    margin: 5px;
+}
+
+.competition-form select {
+    width: 200px;
+    margin-top: 3px;
+    margin-left: 20px;
+    font-family: 'Roboto', sans-serif;
+    font-size: 16px;
+    font-style: revert;
+}
+
+.competition-form output {
+    max-width: 400px;
+    font-family: 'Roboto', sans-serif;
+    font-size: 24px;
+    font-style: normal;
+}

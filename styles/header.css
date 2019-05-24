@@ -1,0 +1,110 @@
+/*
+ > означает, что лишь непосредственные потомки будут получать данный стиль
+ + означает, что лишь те непосредственные потомки, после которых имеется такой же, будут получать данный стиль
+ ~ означает, что лишь те потомки, которые идут друг за другом, получают данный стиль
+ */
+@import url('https://fonts.googleapis.com/css?family=Lora:400,400i,700,700i|Roboto&subset=cyrillic');
+
+.menu {
+    position: static;
+    margin: 50px 30px;
+    width: 120px;
+    /* общая ширина колонки будет 180px (30 + 120 + 30 */
+}
+
+.menu ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.menu a {
+    text-decoration: none;
+    display: block;
+    color: darkslateblue;
+    padding: 2px 3px;
+    border-radius: 3px;
+}
+
+.menu a:hover {
+    color: cornsilk;
+    transition: .3s;
+    background-color: cornflowerblue;
+}
+
+.menu a:hover:active {
+    color: cornflowerblue;
+    transition: .5ms;
+    background-color: powderblue;
+}
+
+.main-menu > li {
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: column;
+    position: relative;
+    margin: 3px 0;
+}
+
+.main-menu > li > a {
+    position: relative;
+    padding: 1px 15px;
+    box-sizing: border-box; /* указывает в зависимости от чего брать хитбокс блока: контент или фиксированные границы */
+    width: 175px;
+    font-family: 'Lora', serif;
+    font-size: 20px;
+}
+
+.main-menu > li:hover .sub-menu {
+    visibility: visible;
+    opacity: 1;
+    transform: translate(90px, -25px);
+}
+
+.sub-menu {
+    position: absolute;
+    z-index: 4; /* высота над остальными элементами (эффект накладывания) */
+    left: 50%;
+    top: 100%;
+    width: 200px;
+    padding: 15px 0 15px; /* отступы внутри блока от его границ */
+    margin-top: 5px; /* отступ за пределами блока от его границы */
+    font-family: 'Roboto', sans-serif;
+    font-size: 18px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 0 30px rgba(0,0,0,.2);
+    box-sizing: border-box;
+    visibility: hidden;
+    opacity: 0;
+    transform: translate(130px, 60%);
+    transition: .5s;
+}
+
+.logout-btn {
+    position: absolute;
+    margin: 3px 15px;
+}
+
+.logout-btn input {
+    background-color: indianred;
+    border: 1px solid indianred;
+    border-radius: 6px;
+    color: azure;
+    font-family: 'Lora', serif;
+    font-style: revert;
+    font-size: 16px;
+    padding: 2px 5px;
+}
+
+.logout-btn input:hover {
+    background-color: crimson;
+    color: azure;
+    transition: .2s;
+}
+
+.logout-btn input:hover:active {
+    background-color: mediumslateblue;
+    border: 0;
+    transition: .5ms;
+}
