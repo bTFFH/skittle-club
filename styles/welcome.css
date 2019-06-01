@@ -1,0 +1,18 @@
+@import url('https://fonts.googleapis.com/css?family=Lora:400,400i,700,700i|Roboto&subset=cyrillic');
+
+.welcome {
+    margin-left: auto;
+    margin-right: auto;
+    position: relative;
+}
+
+.welcome p {
+    position: relative;
+}
+
+.welcome output {
+    font-family: "Lora", sans-serif;
+    font-size: 20px;
+    font-style: normal;
+    color: darkslateblue;
+}

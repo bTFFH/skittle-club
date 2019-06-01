@@ -26,12 +26,12 @@
     else {
         require_once($_SERVER['DOCUMENT_ROOT']."/IndZ/helpers/treatment.php");
         include_once($_SERVER['DOCUMENT_ROOT']."/IndZ/helpers/dbConnOpen.php");
-        $query = 'SELECT username, passwd FROM users WHERE username = ?';
+        $query = 'SELECT username, passwd, name FROM users WHERE username = ?';
         $stmt = $conn->stmt_init();
         $stmt->prepare($query);
         $stmt->bind_param('s', $_POST['username']);
         if ( $stmt->execute() ) {
-            $stmt->bind_result($username, $passwd);
+            $stmt->bind_result($username, $passwd, $name);
             $stmt->store_result();
             if ( $stmt->num_rows === 0 ) {
                 $stmt->free_result();
@@ -46,10 +46,12 @@
                 if ( $passwd === $pwd ) {
                     session_start();
                     $_SESSION['username'] = $username;
+                    $_SESSION['name'] = $name;
                     $stmt->free_result();
                     $stmt->close();
                     include_once($_SERVER['DOCUMENT_ROOT']."/IndZ/helpers/dbConnClose.php");
-                    header("Location: info/players.php");
+//                    header("Location: info/players.php");
+                    header("Location: welcome.php");
                 }
                 else {
                     $stmt->free_result();
