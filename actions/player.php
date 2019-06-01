@@ -23,7 +23,10 @@
         <br />
         <br />
         <?php
-        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+        if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['edit'])) {
+
+        }
+        elseif ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $query = $_POST['team'] == 0 ?
                 'INSERT INTO `players`(`name`, `surname`, `phone`, `street`, `house`) VALUES (?, ?, ?, ?, ?)' :
                 'INSERT INTO `players`(`name`, `surname`, `phone`, `street`, `house`, `team_id`) VALUES (?, ?, ?, ?, ?, ?)';
