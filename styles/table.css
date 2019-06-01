@@ -1,6 +1,7 @@
 @import url('https://fonts.googleapis.com/css?family=Lora:400,400i,700,700i|Roboto&subset=cyrillic');
 
 .general-table {
+    position: relative;
     flex: auto; /* элемент занимает максимально отводимое ему пространство */
 }
 
