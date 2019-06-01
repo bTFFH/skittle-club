@@ -27,6 +27,7 @@
             <tr>
                 <th>Команда</th>
                 <th>Капитан</th>
+                <th></th>
             </tr>
             <?php
             $query = 'SELECT * FROM TeamsV';

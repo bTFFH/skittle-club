@@ -55,14 +55,17 @@
 
 .edit-btn {
     margin: 0;
+    width: 10px;
 }
 
 .edit-btn button {
     border: 1px;
+    background-color: inherit;
 }
 
 .edit-btn button:hover {
     background-color: #BBF7C5;
+    transition: .45s;
 }
 
 .edit-btn button:hover:active {
