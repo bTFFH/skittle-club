@@ -2,6 +2,7 @@
 <html>
 <head>
 	<meta charset='utf8'>
+    <link rel="icon" href="/IndZ/images/logo.png">
     <link rel='stylesheet' href='/IndZ/styles/table.css'>
     <link rel='stylesheet' href='/IndZ/styles/buttons.css'>
     <title>Игроки клуба</title>
