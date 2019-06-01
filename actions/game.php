@@ -7,30 +7,29 @@
     <title>Добавление игры</title>
     <?php
     session_start();
-    if ( !isset($_SESSION['username']) )
+    if (!isset($_SESSION['username']))
         header("Location: " . $_SERVER['DOCUMENT_ROOT'] . "/IndZ/");
-    include_once($_SERVER['DOCUMENT_ROOT'].'/IndZ/helpers/dbConnOpen.php');
+    include_once($_SERVER['DOCUMENT_ROOT'] . '/IndZ/helpers/dbConnOpen.php');
     ?>
 </head>
 <body>
 <div style="display: flex">
     <div style="flex-wrap: nowrap">
         <?php
-        include_once($_SERVER['DOCUMENT_ROOT'].'/IndZ/helpers/header.php');
+        include_once($_SERVER['DOCUMENT_ROOT'] . '/IndZ/helpers/header.php');
         ?>
     </div>
     <div class="add-form">
         <br />
         <br />
         <?php
-        if ( $_SERVER['REQUEST_METHOD'] == 'POST' ) {
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $stmt = $conn->stmt_init();
             $query = 'INSERT INTO `competitions`(`team1_id`, `team2_id`, `playground_id`, `game_date`, `absence`) VALUES (?, ?, ?, ?, ?)';
-            if ( $_POST['team1'] == $_POST['team2'] ) {
+            if ($_POST['team1'] == $_POST['team2']) {
                 $_SESSION['tms'] = '1';
                 header("Location: game.php", true, 303);
-            }
-            else {
+            } else {
                 if ($stmt->prepare($query)) {
                     $stmt->bind_param('iiisi', $_POST['team1'], $_POST['team2'],
                         $_POST['playground'], $_POST['gameDate'], $_POST['absence']);
@@ -54,18 +53,17 @@
                     }
                 }
             }
-        }
-        else {
+        } else {
             $teams = '';
             $playgrounds = '';
             $query = 'SELECT id, team_name FROM teams';
             $stmt = $conn->stmt_init();
-            if ( $stmt->prepare($query) ) {
+            if ($stmt->prepare($query)) {
                 $stmt->execute();
                 $stmt->bind_result($id, $team_name);
                 $stmt->store_result();
 
-                if ( $stmt->num_rows == 0 ) {
+                if ($stmt->num_rows == 0) {
                     $stmt->free_result();
                     $stmt->close();
                     ?>
@@ -79,17 +77,17 @@
                     </div>
                     <?php
                 } else {
-                    while ( $stmt->fetch() )
+                    while ($stmt->fetch())
                         $teams .= "<option value=$id>$team_name</option>";
 
                     $stmt->free_result();
                     $query = 'SELECT id, name FROM playgrounds';
-                    if ( $stmt->prepare($query) ) {
+                    if ($stmt->prepare($query)) {
                         $stmt->execute();
                         $stmt->bind_result($id, $plg_name);
                         $stmt->store_result();
 
-                        if ( $stmt->num_rows == 0 ) {
+                        if ($stmt->num_rows == 0) {
                             $stmt->free_result();
                             $stmt->close();
                             ?>
@@ -99,7 +97,7 @@
                             </div>
                             <?php
                         } else {
-                            while ( $stmt->fetch() )
+                            while ($stmt->fetch())
                                 $playgrounds .= "<option value=$id>$plg_name</option>";
 
                             $stmt->free_result();
@@ -109,26 +107,26 @@
                             <form name="insertNewGame" method="POST" action="game.php">
                                 <p><label>Команда 1<select name="team1"><?php echo $teams; ?></select></label></p>
                                 <p><label>Команда 2<select name="team2"><?php echo $teams; ?></select></label></p>
-                                <p><label>Дата игры<input type="date" name="gameDate" max=<?php echo date("Y-m-d")?> value=<?php echo date("Y-m-d")?> /></label></p>
+                                <p><label>Дата игры<input type="date" name="gameDate"
+                                                          max=<?php echo date("Y-m-d") ?> value=<?php echo date("Y-m-d") ?> /></label></p>
                                 <p><label>Площадка<select name="playground"><?php echo $playgrounds; ?></select></label></p>
                                 <p><label>Отсутствие<select name="absence">
                                             <option value="0">Полные составы</option>
                                             <option value="1">Первая команда</option>
                                             <option value="2">Вторая команда</option>
                                         </select></label></p>
-                                <div class="submit-btn"><input type="submit" value="Добавить" style="margin-left: 23px" /></div>
+                                <div class="submit-btn"><input type="submit" value="Добавить"
+                                                               style="margin-left: 23px"/></div>
                             </form>
                             <?php
-                            if ( strpos($_SERVER['HTTP_REFERER'], "game.php") != 0 && isset($_SESSION['tms']) ) {
-                                if ( $_SESSION['tms'] == '1' ) {
+                            if (strpos($_SERVER['HTTP_REFERER'], "game.php") != 0 && isset($_SESSION['tms'])) {
+                                if ($_SESSION['tms'] == '1') {
                                     unset($_SESSION['tms']);
                                     ?>
                                     <div style="color: indianred;">
-                                        <p>
-                                            <output>Команда не может играть сама с собой, по этой причине "Команда 1" должна отличаться
-                                                от "Команда 2"
-                                            </output>
-                                        </p>
+                                        <p><output>Команда не может играть сама с собой, по этой причине "Команда 1"
+                                                должна отличаться
+                                                от "Команда 2"</output></p>
                                     </div>
                                     <?php
                                 }
@@ -137,9 +135,8 @@
                         }
                     }
                 }
-            }
-            else {
-                exit($stmt->errno.' '.$stmt->error);
+            } else {
+                exit($stmt->errno . ' ' . $stmt->error);
             }
         }
         ?>
@@ -147,7 +144,7 @@
 
 </div>
 <?php
-include_once($_SERVER['DOCUMENT_ROOT'].'/IndZ/helpers/dbConnClose.php');
+include_once($_SERVER['DOCUMENT_ROOT'] . '/IndZ/helpers/dbConnClose.php');
 ?>
 </body>
 </html>

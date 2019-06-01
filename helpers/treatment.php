@@ -9,9 +9,10 @@ function treat($str) {
     $pattern = "/.*((root)|(bin)|(daemon)|(adm)|(lp)|(sync)|(shutdown)|(halt)|
     (mail)|(news)|(uucp)|(operator)|(games)|(mysql)|(httpd)|(nobody)|(dummy)|
     (www)|(cvs)|(shell)|(ftp)|(irc)|(debian)|(ns)|(download)|(false)).*/i";
-    if ( preg_match($pattern, $str) or preg_match("/^(anoncvs_)/", $str) )
+    if (preg_match($pattern, $str) or preg_match("/^(anoncvs_)/", $str))
         return false;
     return $str;
 }
+
 ?>
 

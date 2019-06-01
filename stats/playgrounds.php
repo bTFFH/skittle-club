@@ -6,16 +6,16 @@
     <title>Статистика игр по площадкам</title>
     <?php
     session_start();
-    if ( !isset($_SESSION['username']) )
+    if (!isset($_SESSION['username']))
         header("Location: " . $_SERVER['DOCUMENT_ROOT'] . "/IndZ/");
-    include_once($_SERVER['DOCUMENT_ROOT'].'/IndZ/helpers/dbConnOpen.php');
+    include_once($_SERVER['DOCUMENT_ROOT'] . '/IndZ/helpers/dbConnOpen.php');
     ?>
 </head>
 <body>
 <div style="display: flex">
     <div style="flex-wrap: nowrap">
         <?php
-        include_once($_SERVER['DOCUMENT_ROOT'].'/IndZ/helpers/header.php');
+        include_once($_SERVER['DOCUMENT_ROOT'] . '/IndZ/helpers/header.php');
         ?>
     </div>
     <div class="general-table">
@@ -31,12 +31,12 @@
             <?php
             $query = 'SELECT * FROM Playgrounds_games_amountV';
             $stmt = $conn->stmt_init();
-            if ( $stmt->prepare( $query ) ) {
+            if ($stmt->prepare($query)) {
                 $stmt->execute();
                 $stmt->bind_result($id, $name, $features, $amount);
 
-                while ( $stmt->fetch() ) {
-                    if ( $features == '' ) $features = 'Нет данных';
+                while ($stmt->fetch()) {
+                    if ($features == '') $features = 'Нет данных';
                     echo "<tr><td>$name</td><td style='max-width: 550px'>$features</td><td>$amount</td></tr>";
                 }
 
@@ -48,7 +48,7 @@
     </div>
 </div>
 <?php
-include_once($_SERVER['DOCUMENT_ROOT'].'/IndZ/helpers/dbConnClose.php');
+include_once($_SERVER['DOCUMENT_ROOT'] . '/IndZ/helpers/dbConnClose.php');
 ?>
 </body>
 </html>
