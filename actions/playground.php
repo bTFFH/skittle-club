@@ -49,7 +49,7 @@
             <form name="insertNewPlayground" method="POST" action="playground.php">
                 <p><label>Название площадки<input type="text" name="name" maxlength="50" pattern="[0-9A-ZА-Я^ЪЬ]{1}.*" placeholder="Underground" /></label></p>
                 <p><label>Особенности<textarea name="features" maxlength="255" wrap="soft" placeholder="Ambience of the UK underground"></textarea></label></p>
-                <div class="submit-btn" style="margin-left: 7px"><input type="submit" value="Добавить" /></div>
+                <div class="submit-btn" style="margin-left: 0"><input type="submit" value="Добавить" /></div>
             </form>
             <?php
         }

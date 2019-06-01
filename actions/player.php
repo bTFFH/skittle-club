@@ -88,7 +88,7 @@
                 <p><label>Улица<input type="text" name="street" maxlength="50" placeholder="Wall Street" required /></label></p>
                 <p><label>Дом<input type="text" name="house" maxlength="3" pattern="[0-9]{1,3}" placeholder="17" required /></label></p>
                 <p><label>Команда<select name="team"><option selected value="0">Не в команде</option><?php echo $teams; ?></select></label></p>
-                <div class="submit-btn" style="margin-left: 295px"><input type="submit" value="Добавить" /></div>
+                <div class="submit-btn"style="margin-left: 250px"><input type="submit" value="Добавить" /></div>
             </form>
             <?php
         }

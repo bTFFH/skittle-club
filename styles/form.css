@@ -9,8 +9,10 @@
 }
 
 .general-form form {
+    position: relative;
     border: 4px double cornflowerblue;
     border-radius: 6px;
+    width: 350px;
 }
 
 .date-label {
