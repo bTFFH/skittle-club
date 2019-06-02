@@ -28,10 +28,10 @@
             <br/>
             <form name="teamsParticipation" method="POST" action="teams_participation.php">
                 <p><label class="date-label">Дата начала:<input class="date-input" type="date" name="startDate"
-                                                                value=<?php echo date("Y-m-d"); ?>/></label></p>
+                                                                value="<?php echo date("Y-m-d"); ?>" /></label></p>
                 <p><label class="date-label">Дата конца:<input
                                 class="date-input" type="date" name="endDate"
-                                value=<?php echo date("Y-m-d", time() + 60 * 60 * 24 * 7); ?>/></label></p>
+                                value="<?php echo date("Y-m-d", time() + 60 * 60 * 24 * 7); ?>" /></label></p>
                 <div class="submit-btn"><input type="submit" value="Сформировать"/></div>
             </form>
         </div>

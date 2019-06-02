@@ -23,47 +23,64 @@
         <br />
         <br />
         <?php
-        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-            $stmt = $conn->stmt_init();
-            $query = 'INSERT INTO `competitions`(`team1_id`, `team2_id`, `playground_id`, `game_date`, `absence`) VALUES (?, ?, ?, ?, ?)';
+        $stmt = $conn->stmt_init();
+        if ($_SERVER['REQUEST_METHOD'] == 'POST' && !isset($_POST['edit'])) {
+            $query = $_SESSION['update'] === "Not updated" ?
+                'INSERT INTO `competitions`(`team1_id`, `team2_id`, `playground_id`, `game_date`, `absence`) VALUES (?, ?, ?, ?, ?)' :
+                'UPDATE `competitions` SET `team1_id` = ?, `team2_id` = ?, `playground_id` = ?, `game_date` = ?, `absence` = ? WHERE `id` = ?';
             if ($_POST['team1'] == $_POST['team2']) {
-                $_SESSION['tms'] = '1';
+                $_SESSION['error'] = 1;
+                header("Location: game.php", true, 303);
+            } elseif ($_POST['team1'] == 0 || $_POST['team2'] == 0) {
+                $_SESSION['error'] = 2;
+                header("Location: game.php", true, 303);
+            } elseif ($_POST['playground'] == 0) {
+                $_SESSION['error'] = 3;
                 header("Location: game.php", true, 303);
             } else {
                 if ($stmt->prepare($query)) {
-                    $stmt->bind_param('iiisi', $_POST['team1'], $_POST['team2'],
-                        $_POST['playground'], $_POST['gameDate'], $_POST['absence']);
+                    $game_date = $_POST['gameDate'] != "" ? $_POST['gameDate'] : date("Y-m-d");
+                    $_SESSION['update'] === "Not updated" ?
+                        $stmt->bind_param('iiisi', $_POST['team1'], $_POST['team2'],
+                            $_POST['playground'], $game_date, $_POST['absence']) :
+                        $stmt->bind_param('iiisii', $_POST['team1'], $_POST['team2'],
+                            $_POST['playground'], $game_date, $_POST['absence'], $_SESSION['update']);
                     if ($stmt->execute()) {
-                        echo "<p><output style=\"color: seagreen;\">Новая игра успешно добавлена</output></p>";
+                        $_SESSION['update'] === "Not updated" ?
+                            $result = "<p><output style=\"color: seagreen;\">Новая игра успешно добавлена</output></p>" :
+                            $result = "<p><output style=\"color: seagreen;\">Игра успешно обновлена</output></p>";
                     } else {
-                        $stmt->close();
-                        ?>
-                        <form name="errorNewGame" method="GET" action="game.php">
-                            <div style="color: indianred;">
-                                <p>
-                                    <output>При добавлении игры возникла ошибка</output>
-                                </p>
-                                <p>
-                                    <output>Попробойте осуществить операцию еще раз</output>
-                                </p>
-                                <div class="submit-btn"><input type="submit" value="Попробовать"/></div>
-                            </div>
-                        </form>
-                        <?php
+                        $_SESSION['update'] === "Not updated" ?
+                            $text = '<p><output>При добавлении игры возникла ошибка</output></p><p><output>Попробойте осуществить операцию еще раз</output></p>' :
+                            $text = '<p><output>При обновлении игры возникла ошибка</output></p><p><output>Попробойте осуществить операцию еще раз</output></p>';
+                        $result = '<form name="errorNewGame" method="GET" action="game.php"><div style="color: indianred;">' .
+                            $text .
+                            '<div class="submit-btn"><input type="submit" value="Попробовать"/></div></div></form>';
                     }
                 }
             }
+            echo $result;
+            $stmt->close();
         } else {
+            $_SESSION['update'] = "Not updated";
+            $team1_id = 0;
+            $team1_name = 'Выберите команду 1';
+            $team2_id = 0;
+            $team2_name = 'Выберите команду 2';
+            $playground_id = 0;
+            $playground_name = 'Выберите площадку';
+            $game_date = date("Y-m-d");
+            $composition_value = 0;
+            $composition = "Полные составы";
             $teams = '';
             $playgrounds = '';
             $query = 'SELECT id, team_name FROM teams';
-            $stmt = $conn->stmt_init();
             if ($stmt->prepare($query)) {
                 $stmt->execute();
                 $stmt->bind_result($id, $team_name);
                 $stmt->store_result();
 
-                if ($stmt->num_rows == 0) {
+                if ($stmt->num_rows == 0 && !isset($_POST['edit'])) {
                     $stmt->free_result();
                     $stmt->close();
                     ?>
@@ -89,7 +106,6 @@
 
                         if ($stmt->num_rows == 0) {
                             $stmt->free_result();
-                            $stmt->close();
                             ?>
                             <div style="color: indianred;">
                                 <p><output>В базе данных отсутствуют площадки</output></p>
@@ -101,39 +117,90 @@
                                 $playgrounds .= "<option value=$id>$plg_name</option>";
 
                             $stmt->free_result();
-                            $stmt->close();
 
+                            if (isset($_POST['edit'])) {
+                                $_SESSION['update'] = $_POST['edit'];
+                                $query = 'SELECT team1_id, team2_id, playground_id, game_date, absence FROM competitions WHERE id = ?';
+                                if ($stmt->prepare($query)) {
+                                    $stmt->bind_param('i', $_SESSION['update']);
+                                    if ($stmt->execute()) {
+                                        $stmt->bind_result($team1_id, $team2_id, $playground_id, $game_date, $composition_value);
+                                        $stmt->store_result();
+                                        $stmt->fetch();
+                                        $stmt->free_result();
+                                        if ($composition_value == 1) $composition = "Первая команда";
+                                        elseif ($composition_value == 2) $composition = "Вторая команда";
+                                        else $composition = "Полные составы";
+                                        $query = 'SELECT team_name FROM teams WHERE id = ?';
+                                        if ($stmt->prepare($query)) {
+                                            $stmt->bind_param('i', $team1_id);
+                                            if ($stmt->execute()) {
+                                                $stmt->bind_result($team1_name);
+                                                $stmt->store_result();
+                                                $stmt->fetch();
+                                                $stmt->free_result();
+                                                $stmt->bind_param('i', $team2_id);
+                                                if ($stmt->execute()) {
+                                                    $stmt->bind_result($team2_name);
+                                                    $stmt->store_result();
+                                                    $stmt->fetch();
+                                                    $stmt->free_result();
+                                                    $query = 'SELECT name FROM playgrounds WHERE id = ?';
+                                                    if ($stmt->prepare($query)) {
+                                                        $stmt->bind_param('i', $playground_id);
+                                                        if ($stmt->execute()) {
+                                                            $stmt->bind_result($playground_name);
+                                                            $stmt->store_result();
+                                                            $stmt->fetch();
+                                                            $stmt->free_result();
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
                             ?>
                             <form name="insertNewGame" method="POST" action="game.php">
-                                <p><label>Команда 1<select name="team1"><?php echo $teams; ?></select></label></p>
-                                <p><label>Команда 2<select name="team2"><?php echo $teams; ?></select></label></p>
+                                <p><label>Команда 1<select name="team1">
+                                            <option selected value="<?php echo $team1_id; ?>"><?php echo $team1_name; ?></option>
+                                            <?php echo $teams; ?></select></label></p>
+                                <p><label>Команда 2<select name="team2">
+                                            <option selected value="<?php echo $team2_id; ?>"><?php echo $team2_name; ?></option>
+                                            <?php echo $teams; ?></select></label></p>
                                 <p><label>Дата игры<input type="date" name="gameDate"
-                                                          max=<?php echo date("Y-m-d") ?> value=<?php echo date("Y-m-d") ?> /></label></p>
-                                <p><label>Площадка<select name="playground"><?php echo $playgrounds; ?></select></label></p>
+                                                          max="<?php echo date("Y-m-d"); ?>" value="<?php echo $game_date; ?>" /></label></p>
+                                <p><label>Площадка<select name="playground">
+                                            <option selected value="<?php echo $playground_id; ?>"><?php echo $playground_name; ?></option>
+                                            <?php echo $playgrounds; ?></select></label></p>
                                 <p><label>Отсутствие<select name="absence">
+                                            <option selected value="<?php echo $composition_value; ?>"><?php echo $composition; ?></option>
                                             <option value="0">Полные составы</option>
                                             <option value="1">Первая команда</option>
                                             <option value="2">Вторая команда</option>
                                         </select></label></p>
-                                <div class="submit-btn"><input type="submit" value="Добавить"
-                                                               style="margin-left: 23px"/></div>
+                                <div class="submit-btn"><input 
+                                            type="submit"
+                                            value="<?php if (!isset($_POST['edit'])) echo 'Добавить'; else echo 'Обновить'; ?>"
+                                            style="margin-left: 23px"/></div>
                             </form>
                             <?php
-                            if (strpos($_SERVER['HTTP_REFERER'], "game.php") != 0 && isset($_SESSION['tms'])) {
-                                if ($_SESSION['tms'] == '1') {
-                                    unset($_SESSION['tms']);
-                                    ?>
-                                    <div style="color: indianred;">
-                                        <p><output>Команда не может играть сама с собой, по этой причине "Команда 1"
-                                                должна отличаться
-                                                от "Команда 2"</output></p>
-                                    </div>
-                                    <?php
-                                }
-                                $_POST['tms'] = '0';
+                            if (strpos($_SERVER['HTTP_REFERER'], "game.php") != 0 && isset($_SESSION['error'])) {
+                                $error = $_SESSION['error'];
+                                unset($_SESSION['error']);
+                                if ($error == 3) $error = 'Необходимо выбрать площадку';
+                                elseif ($error == 2) $error = 'Необходимо заполнить оба поля "Команда"';
+                                else $error = 'Команда не может играть сама с собой, по этой причине поле "Команда 1" должна отличаться от поля "Команда 2"';
+                                ?>
+                                <div style="color: indianred;">
+                                    <p><output><?php echo $error; ?></output></p>
+                                </div>
+                                <?php
                             }
                         }
                     }
+                    $stmt->close();
                 }
             } else {
                 exit($stmt->errno . ' ' . $stmt->error);
