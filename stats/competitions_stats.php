@@ -37,7 +37,7 @@
                 $stmt->bind_result($id, $team, $player, $opponent, $amount);
 
                 while ($stmt->fetch())
-                    echo "<tr><td>$team</td><td>$player</td><td>$opponent</td><td>$amount</td><td class='edit-btn'><form method='POST' action='/IndZ/editors/players.php'><button type='submit' name='edit' value=$id.' '.$team.' '.$player>Изменить</button></form></td></tr>";
+                    echo "<tr><td>$team</td><td>$player</td><td>$opponent</td><td>$amount</td></tr>";
                 $stmt->free_result();
                 $stmt->close();
             }

@@ -26,7 +26,7 @@
                     <ul class="sub-menu">
                         <li><a href="/IndZ/stats/teams_stats.php">Команды</a></li>
                         <li><a href="/IndZ/stats/players_stats.php">Игроки</a></li>
-                        <li><a href="/IndZ/stats/competitions_info.php">Игры</a></li>
+                        <li><a href="/IndZ/stats/competitions_stats.php">Игры</a></li>
                         <li><a href="/IndZ/stats/playgrounds.php">Игры по площадкам</a></li><!-- задание 3 -->
                         <li><a href="/IndZ/stats/playgrounds_efficiency.php">Результативность по площадкам</a></li><!-- задание 6 -->
                     </ul>

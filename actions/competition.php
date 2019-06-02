@@ -27,7 +27,8 @@
         $query = 'INSERT INTO `competitions_info`(`competition_id`, `player_id`, `skittles_amount`) VALUES (?, ?, ?)';
         $stmt->prepare($query);
         foreach ($playersArray as $playerId => $playerName) {
-            $stmt->bind_param('iii', $_POST['competitionId'], $playerId, $_POST[$playerId]);
+            $skittles = $_POST[$playerId] == '' ? 0 : $_POST[$playerId];
+            $stmt->bind_param('iii', $_POST['competitionId'], $playerId, $skittles);
             if ($stmt->execute()) {
                 echo "<p><output style=\"color: seagreen\">Статистика для игрока $playerName обновлена</output></p>";
             } else {
@@ -53,7 +54,7 @@
                 $stmt->store_result();
                 while ($stmt->fetch()) {
                     $playersArray[$playerId] = $playerName;
-                    $players .= "<p><label>$playerName<input name=$playerId placeholder='Очки игрока' pattern='{0-9]+' maxlength='10' required /></label></p>";
+                    $players .= "<p><label style='color: navy'>$playerName [$playerId]<input name=$playerId placeholder='Очки игрока' pattern='{0-9]+' maxlength='10' required /></label></p>";
                 }
                 $stmt->free_result();
             } else {
@@ -65,7 +66,7 @@
                 $stmt->store_result();
                 while ($stmt->fetch()) {
                     $playersArray[$playerId] = $playerName;
-                    $players .= "<p><label>$playerName<input name=$playerId placeholder='Очки игрока' pattern='{0-9]+' maxlength='10' required /></label></p>";
+                    $players .= "<p><label style='color: maroon'>$playerName [$playerId]<input name=$playerId placeholder='Очки игрока' pattern='{0-9]+' maxlength='10' required /></label></p>";
                 }
                 $stmt->free_result();
             } else {
@@ -97,12 +98,8 @@
                 $stmt->close();
                 ?>
                 <div style="color: indianred;">
-                    <p>
-                        <output>В базе данных отсутствуют команды</output>
-                    </p>
-                    <p>
-                        <output>Для добавления статистики игры, пожалуйста, добавьте новую команду</output>
-                    </p>
+                    <p><output>В базе данных отсутствуют команды</output></p>
+                    <p><output>Для добавления статистики игры, пожалуйста, добавьте новую команду</output></p>
                 </div>
                 <?php
             } else {
