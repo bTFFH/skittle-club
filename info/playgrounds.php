@@ -37,7 +37,7 @@
 
                 while ($stmt->fetch()) {
                     if ($features == '') $features = 'Нет данных';
-                    echo "<tr><td>$name</td><td >$features</td><td class='edit-btn'><form method='POST' action='/IndZ/editors/players.php'><button type='submit' name='edit' value=$id>Изменить</button></form></td></tr>";
+                    echo "<tr><td>$name</td><td >$features</td><td class='edit-btn'><form method='POST' action='/IndZ/actions/playground.php'><button type='submit' name='edit' value=$id><img src='/IndZ/images/settings.svg' alt='Изменить'/></button></form></td></tr>";
                 }
 
                 $stmt->free_result();
