@@ -3,6 +3,7 @@
 <head>
     <meta charset='utf8'>
     <link rel='stylesheet' href='/IndZ/styles/table.css'>
+    <link rel='stylesheet' href='/IndZ/styles/buttons.css'>
     <title>Команды клуба</title>
     <?php
     session_start();
@@ -37,7 +38,7 @@
                 $stmt->bind_result($id, $team, $captain);
 
                 while ($stmt->fetch())
-                    echo "<tr><td>$team</td><td>$captain</td><td class='edit-btn'><form method='POST' action='/IndZ/editors/players.php'><button type='submit' name='edit' value=$id>Изменить</button></form></td></tr>";
+                    echo "<tr><td>$team</td><td>$captain</td><td class='edit-btn'><form method='POST' action='/IndZ/actions/team.php'><button type='submit' name='edit' value=$id><img src='/IndZ/images/settings.svg' alt='Изменить'/></button></form></td></tr>";
                 $stmt->free_result();
                 $stmt->close();
             }

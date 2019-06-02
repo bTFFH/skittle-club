@@ -3,6 +3,7 @@
 <head>
     <meta charset='utf8'>
     <link rel='stylesheet' href='/IndZ/styles/table.css'>
+    <link rel='stylesheet' href='/IndZ/styles/buttons.css'>
     <title>История игр</title>
     <?php
     session_start();

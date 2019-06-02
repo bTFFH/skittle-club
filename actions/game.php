@@ -30,13 +30,22 @@
                 'UPDATE `competitions` SET `team1_id` = ?, `team2_id` = ?, `playground_id` = ?, `game_date` = ?, `absence` = ? WHERE `id` = ?';
             if ($_POST['team1'] == $_POST['team2']) {
                 $_SESSION['error'] = 1;
-                header("Location: game.php", true, 303);
+                if ($_SESSION['update'] !== "Not updated")
+                    header("Location: game.php?edit=$_SESSION[update]", false, 303);
+                else
+                    header("Location: game.php", true, 303);
             } elseif ($_POST['team1'] == 0 || $_POST['team2'] == 0) {
                 $_SESSION['error'] = 2;
-                header("Location: game.php", true, 303);
+                if ($_SESSION['update'] !== "Not updated")
+                    header("Location: game.php?edit=$_SESSION[update]", true, 303);
+                else
+                    header("Location: game.php", true, 303);
             } elseif ($_POST['playground'] == 0) {
                 $_SESSION['error'] = 3;
-                header("Location: game.php", true, 303);
+                if ($_SESSION['update'] !== "Not updated")
+                    header("Location: game.php?edit=$_SESSION[update]", true, 303);
+                else
+                    header("Location: game.php", true, 303);
             } else {
                 if ($stmt->prepare($query)) {
                     $game_date = $_POST['gameDate'] != "" ? $_POST['gameDate'] : date("Y-m-d");
@@ -50,9 +59,12 @@
                             $result = "<p><output style=\"color: seagreen;\">Новая игра успешно добавлена</output></p>" :
                             $result = "<p><output style=\"color: seagreen;\">Игра успешно обновлена</output></p>";
                     } else {
-                        $_SESSION['update'] === "Not updated" ?
-                            $text = '<p><output>При добавлении игры возникла ошибка</output></p><p><output>Попробойте осуществить операцию еще раз</output></p>' :
+                        if ($_SESSION['update'] === "Not updated")
+                            $text = '<p><output>При добавлении игры возникла ошибка</output></p><p><output>Попробойте осуществить операцию еще раз</output></p>';
+                        else {
                             $text = '<p><output>При обновлении игры возникла ошибка</output></p><p><output>Попробойте осуществить операцию еще раз</output></p>';
+                            echo "<input type='text' name='edit' value='$_SESSION[update]' hidden />";
+                        }
                         $result = '<form name="errorNewGame" method="GET" action="game.php"><div style="color: indianred;">' .
                             $text .
                             '<div class="submit-btn"><input type="submit" value="Попробовать"/></div></div></form>';
@@ -118,8 +130,8 @@
 
                             $stmt->free_result();
 
-                            if (isset($_POST['edit'])) {
-                                $_SESSION['update'] = $_POST['edit'];
+                            if (isset($_POST['edit']) || isset($_GET['edit'])) {
+                                $_SESSION['update'] = isset($_POST['edit']) ? $_POST['edit'] : $_GET['edit'];
                                 $query = 'SELECT team1_id, team2_id, playground_id, game_date, absence FROM competitions WHERE id = ?';
                                 if ($stmt->prepare($query)) {
                                     $stmt->bind_param('i', $_SESSION['update']);
@@ -180,7 +192,7 @@
                                             <option value="1">Первая команда</option>
                                             <option value="2">Вторая команда</option>
                                         </select></label></p>
-                                <div class="submit-btn"><input 
+                                <div class="submit-btn"><input
                                             type="submit"
                                             value="<?php if (!isset($_POST['edit'])) echo 'Добавить'; else echo 'Обновить'; ?>"
                                             style="margin-left: 23px"/></div>
