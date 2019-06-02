@@ -36,7 +36,7 @@
             }
         }
     } elseif ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['competition'])) {
-        echo "<div class=\"add-form\"><br /><br />";
+        echo "<div class=\"add-form\"  style='flex-basis: auto; min-width: 450px; max-width: 900px'><br /><br />";
         $players = '';
         $query = "SELECT team1_id, team2_id FROM competitions WHERE id = $_POST[competition]";
         $stmt->prepare($query);
@@ -86,7 +86,7 @@
             <?php
         }
     } else {
-        echo "<div class=\"competition-form\"><br /><br />";
+            echo "<div class=\"competition-form\"><br /><br />";
         $teamsArray = [];
         $query = 'SELECT id, team_name FROM teams';
         $stmt->prepare($query);

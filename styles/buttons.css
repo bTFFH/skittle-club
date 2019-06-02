@@ -2,7 +2,7 @@
 
 .submit-btn {
     position: relative;
-    margin: 8px 5px 7px 160px;
+    padding: 0 5px 7px 180px;
 }
 
 .submit-btn input {
@@ -28,7 +28,7 @@
 }
 
 .submit-btn-rev {
-    margin: 10px 15% 10px 80%;
+    padding: 10px 15% 10px 80%;
 }
 
 .submit-btn-rev input {

@@ -32,7 +32,7 @@
                 <p><label class="date-label">Дата конца:<input
                                 class="date-input" type="date" name="endDate"
                                 value="<?php echo date("Y-m-d", time() + 60 * 60 * 24 * 7); ?>" /></label></p>
-                <div class="submit-btn"><input type="submit" value="Сформировать"/></div>
+                <div class="submit-btn" style="padding-left: 202px"><input type="submit" value="Сформировать"/></div>
             </form>
         </div>
         <?php

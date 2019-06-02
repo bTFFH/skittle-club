@@ -26,7 +26,7 @@
         if ($_SERVER['REQUEST_METHOD'] == 'POST' && !isset($_POST['edit'])) {
             if ($_SESSION['update'] !== "Not updated")
                 $query = $_POST['team'] == 0 ?
-                    "UPDATE `players` SET `name` = ?, `surname` = ?, `phone` = ?, `street` = ?, `house` = ? WHERE id = $_SESSION[update]" :
+                    "UPDATE `players` SET `name` = ?, `surname` = ?, `phone` = ?, `street` = ?, `house` = ?, `team_id` = NULL WHERE id = $_SESSION[update]" :
                     "UPDATE `players` SET `name` = ?, `surname` = ?, `phone` = ?, `street` = ?, `house` = ?, `team_id` = ? WHERE id = $_SESSION[update]";
             else
                 $query = $_POST['team'] == 0 ?
@@ -142,8 +142,9 @@
                                     value="<?php echo $house; ?>" required/></label></p>
                 <p><label>Команда<select name="team">
                             <option selected value="<?php echo $team_id; ?>"><?php echo $team_name; ?></option>
+                            <option value="0">Не в команде</option>
                             <?php echo $teams; ?></select></label></p>
-                <div class="submit-btn" style="margin-left: 295px"><input type="submit"
+                <div class="submit-btn" style="padding-left: 230px"><input type="submit"
                 value="<?php if (!isset($_POST['edit'])) echo 'Добавить'; else echo 'Обновить'; ?>"/></div>
             </form>
             <?php

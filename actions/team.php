@@ -157,7 +157,7 @@
                                     <option selected value="<?php echo $cap_id; ?>"><?php echo "$cap_name [$cap_id]"; ?></option>
                                     <?php echo $players; ?></select></label></p>
                         <div class="submit-btn"><input
-                                    type="submit" style="margin-left: 30px"
+                                    type="submit" style="padding-left: 15px"
                                     value="<?php if (!isset($_POST['edit'])) echo 'Добавить'; else echo 'Обновить'; ?>" /></div>
                     </form>
                     <?php
