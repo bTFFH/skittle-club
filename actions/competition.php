@@ -27,8 +27,6 @@
         $query = 'INSERT INTO `competitions_info`(`competition_id`, `player_id`, `skittles_amount`) VALUES (?, ?, ?)';
         $stmt->prepare($query);
         foreach ($playersArray as $playerId => $playerName) {
-//                $playerId = $playersArray[$i][0];
-//                $playerName = $playersArray[$i][1];
             $stmt->bind_param('iii', $_POST['competitionId'], $playerId, $_POST[$playerId]);
             if ($stmt->execute()) {
                 echo "<p><output style=\"color: seagreen\">Статистика для игрока $playerName обновлена</output></p>";
@@ -75,7 +73,6 @@
             }
             $stmt->close();
             $playersStr = serialize($playersArray);
-//                echo $playersArray.' --- '.$playersStr;
             ?>
             <form name="addCompetitionInfo" method="POST" action="competition.php">
                 <?php
