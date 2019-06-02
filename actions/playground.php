@@ -89,7 +89,7 @@
                                                   placeholder="Underground"/></label></p>
                 <p><label>Особенности<textarea name="features" maxlength="255" wrap="soft"
                                                placeholder="Ambience of the UK underground"><?php echo $features; ?></textarea></label></p>
-                <div class="submit-btn" style="margin-left: 7px"><input
+                <div class="submit-btn" style="padding: 40px 0 0 0;"><input
                             type="submit"
                             value="<?php if (!isset($_POST['edit'])) echo 'Добавить'; else echo 'Обновить'; ?>"/></div>
             </form>
