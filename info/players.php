@@ -19,7 +19,6 @@
         <?php
         include_once($_SERVER['DOCUMENT_ROOT'] . '/IndZ/helpers/header.php');
         ?>
-        <!--        </div>-->
     </div>
     <div class="general-table">
         <br />
@@ -32,6 +31,7 @@
                 <th>Телефон</th>
                 <th>Адрес</th>
                 <th>Команда</th>
+                <th></th>
                 <th></th>
             </tr>
             <?php
@@ -51,7 +51,7 @@
                     echo $row;*/
 
                 while ($stmt->fetch())
-                    echo "<tr><td>$name</td><td>$surname</td><td>$phone</td><td>$street, $house</td><td>$team</td><td class='edit-btn'><form method='POST' action='/IndZ/actions/player.php'><button type='submit' name='edit' value=$id><img src='/IndZ/images/settings.svg' alt='Изменить'/></button></form></td></tr>";
+                    echo "<tr><td>$name</td><td>$surname</td><td>$phone</td><td>$street, $house</td><td>$team</td><td class='edit-btn'><form method='POST' action='/IndZ/actions/player.php'><button type='submit' name='edit' value=$id><img src='/IndZ/images/settings.svg' alt='Изменить'/></button></form></td><td class='edit-btn'><form method='POST' action='/IndZ/helpers/delete.php'><button type='submit' name='delete' value=\"" . $id . ' players"' . "><img src='/IndZ/images/delete.svg' alt='Удалить'/></button></form></td></tr>";
 
                 $stmt->free_result();
                 $stmt->close();
