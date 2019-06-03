@@ -24,10 +24,9 @@
             include_once($_SERVER['DOCUMENT_ROOT'] . '/IndZ/helpers/dbConnOpen.php');
             $query = 'SELECT username FROM users WHERE username = ?';
             $stmt = $conn->stmt_init();
-            if ($stmt->prepare($query)
-                && $stmt->bind_param('s', $username)
-                && $stmt->execute()
-            ) {
+            if ($stmt->prepare($query)) {
+                $stmt->bind_param('s', $username);
+                if ($stmt->execute()) {
                     $stmt->store_result();
                     if ($stmt->num_rows !== 0) {
                         $stmt->free_result();
@@ -43,23 +42,29 @@
                             if ($stmt->execute()) {
                                 $stmt->close();
                                 include_once($_SERVER['DOCUMENT_ROOT'] . "/IndZ/helpers/dbConnClose.php");
-                                session_start();
-                                $_SESSION['username'] = $_POST['username'];
-                                $_SESSION['name'] = $_POST['name'];
-                                header("Location: welcome.php");
+                                header("Location: index.php");
                             } else {
                                 $stmt->close();
                                 include_once($_SERVER['DOCUMENT_ROOT'] . "/IndZ/helpers/dbConnClose.php");
                                 header("Location: registration.php/?err=t", true);
                             }
                         } else {
-                            header("Location: registration.php/?err=t", true);
+                            $_SESSION['errno'] = $stmt->errno;
+                            $_SESSION['error'] = $stmt->error;
+                            header("Location: ../helpers/error.php");
                         }
                     }
+                } else {
+                    $_SESSION['errno'] = $stmt->errno;
+                    $_SESSION['error'] = $stmt->error;
+                    header("Location: ../helpers/error.php");
+                }
             } else {
-                include_once($_SERVER['DOCUMENT_ROOT'] . "/IndZ/helpers/dbConnClose.php");
-                header("Location: registration.php/?err=t", true);
+                $_SESSION['errno'] = $stmt->errno;
+                $_SESSION['error'] = $stmt->error;
+                header("Location: ../helpers/error.php");
             }
+            include_once($_SERVER['DOCUMENT_ROOT'] . "/IndZ/helpers/dbConnClose.php");
         }
     } else {
         ?>
