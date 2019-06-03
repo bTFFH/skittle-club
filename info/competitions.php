@@ -20,18 +20,20 @@
                 <th>Игровая площадка</th>
                 <th>Дата игры</th>
                 <th>Командная явка</th>
-                <th></th>
+                <th>Победитель</th>
                 <th></th>
             </tr>
             <?php
             $query = 'SELECT * FROM CompetitionsV';
             $stmt = $conn->stmt_init();
             if ($stmt->prepare($query) && $stmt->execute()) {
-                $stmt->bind_result($id, $team1, $team2, $playground, $gameDate, $absence);
+                $stmt->bind_result($id, $team1, $team2, $playground, $gameDate, $absence, $winner);
 
                 while ($stmt->fetch()) {
+                    if ($team1 == "NULL") $team1 = "Команда удалена";
+                    if ($team1 == "NULL") $team2 = "Команда удалена";
                     $gameDate = substr($gameDate, 8, 2) . '/' . substr($gameDate, 5, 2) . '/' . substr($gameDate, 0, 4);
-                    echo "<tr><td>$team1</td><td>$team2</td><td>$playground</td><td>$gameDate</td><td>$absence</td><td class='edit-btn'><form method='POST' action='/IndZ/actions/game.php'><button type='submit' name='edit' value=$id><img src='/IndZ/images/settings.svg' alt='Изменить'/></button></form></td><td class='edit-btn'><form method='POST' action='/IndZ/helpers/delete.php'><button type='submit' name='delete' value=\"$id competitions\"><img src='/IndZ/images/delete.svg' alt='Удалить'/></button></form></td></tr>";
+                    echo "<tr><td>$team1</td><td>$team2</td><td>$playground</td><td>$gameDate</td><td>$absence</td><td>$winner</td><td class='edit-btn'><form method='POST' action='/IndZ/actions/game.php'><button type='submit' name='edit' value=$id><img src='/IndZ/images/settings.svg' alt='Изменить'/></button></form></td></tr>";
                 }
                 $stmt->free_result();
                 $stmt->close();

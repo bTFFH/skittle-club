@@ -22,7 +22,7 @@
         <?php
         if (isset($_GET['err'])) {
             echo "<p><output style='padding-left: 15px;'>Неверное имя пользователя или пароль</output></p>";
-            if ($_GET['err'] == 'p') echo "passtruoubles";
+//            if ($_GET['err'] == 'p') echo "passtruoubles";
         }
     } else {
         require_once($_SERVER['DOCUMENT_ROOT'] . "/IndZ/helpers/treatment.php");
