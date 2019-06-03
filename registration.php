@@ -2,6 +2,7 @@
 <html>
 <head>
     <meta charset='utf8'>
+    <link rel="icon" href="/IndZ/images/logo.png">
     <link rel='stylesheet' href='/IndZ/styles/auth.css'>
     <title>Регистрация</title>
 </head>

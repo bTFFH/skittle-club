@@ -23,22 +23,16 @@
             <?php
             $query = 'SELECT * FROM PlaygroundsV';
             $stmt = $conn->stmt_init();
-            if ($stmt->prepare($query)) {
-                if ($stmt->execute()) {
-                    $stmt->bind_result($id, $name, $features);
+            if ($stmt->prepare($query) && $stmt->execute()) {
+                $stmt->bind_result($id, $name, $features);
 
-                    while ($stmt->fetch()) {
-                        if ($features == '') $features = 'Нет данных';
-                        echo "<tr><td>$name</td><td >$features</td><td class='edit-btn'><form method='POST' action='/IndZ/actions/playground.php'><button type='submit' name='edit' value=$id><img src='/IndZ/images/settings.svg' alt='Изменить'/></button></form></td><td class='edit-btn'><form method='POST' action='/IndZ/helpers/delete.php'><button type='submit' name='delete' value=\"" . $id . ' playgrounds"' . "><img src='/IndZ/images/delete.svg' alt='Удалить'/></button></form></td></tr>";
-                    }
+                while ($stmt->fetch()) {
+                    if ($features == '') $features = 'Нет данных';
+                    echo "<tr><td>$name</td><td >$features</td><td class='edit-btn'><form method='POST' action='/IndZ/actions/playground.php'><button type='submit' name='edit' value=$id><img src='/IndZ/images/settings.svg' alt='Изменить'/></button></form></td><td class='edit-btn'><form method='POST' action='/IndZ/helpers/delete.php'><button type='submit' name='delete' value=\"" . $id . ' playgrounds"' . "><img src='/IndZ/images/delete.svg' alt='Удалить'/></button></form></td></tr>";
+                }
 
-                    $stmt->free_result();
-                    $stmt->close();
-                } else {
-                $_SESSION['errno'] = $stmt->errno;
-                $_SESSION['error'] = $stmt->error;
-                header("Location: ../helpers/error.php");
-            }
+                $stmt->free_result();
+                $stmt->close();
             } else {
                 $_SESSION['errno'] = $stmt->errno;
                 $_SESSION['error'] = $stmt->error;

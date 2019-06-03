@@ -34,16 +34,11 @@
         $end = $_POST['endDate'] != "" ? $_POST['endDate'] : date("Y-m-d");
         $query = "CALL teams_participation(?, ?)";
         $stmt = $conn->stmt_init();
-        if ($stmt->prepare($query)) {
-            $stmt->bind_param('ss', $std, $end);
-            if ($stmt->execute()) {
-                $result = $stmt->get_result();
-            } else {
-                $_SESSION['errno'] = $stmt->errno;
-                $_SESSION['error'] = $stmt->error;
-                header("Location: ../helpers/error.php");
-            }
-        } else {
+        if ($stmt->prepare($query)
+            && $stmt->bind_param('ss', $std, $end)
+            && $stmt->execute()
+        ) $result = $stmt->get_result();
+        else {
             $_SESSION['errno'] = $stmt->errno;
             $_SESSION['error'] = $stmt->error;
             header("Location: ../helpers/error.php");

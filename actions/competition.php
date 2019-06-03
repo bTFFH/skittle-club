@@ -28,8 +28,7 @@
         } else {
             $_SESSION['errno'] = $stmt->errno;
             $_SESSION['error'] = $stmt->error;
-//            header("Location: ../helpers/error.php");
-            echo "5";
+            header("Location: ../helpers/error.php");
         }
     } elseif ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['competition'])) {
         echo "<div class=\"add-form\"  style='flex-basis: auto; min-width: 450px; max-width: 900px'><br /><br />";
@@ -58,8 +57,7 @@
             } else {
                 $_SESSION['errno'] = $stmt->errno;
                 $_SESSION['error'] = $stmt->error;
-//                    header("Location: ../helpers/error.php");
-                echo "6";
+                    header("Location: ../helpers/error.php");
             }
             $stmt->bind_param('i', $team2);
             if ($stmt->execute()) {
@@ -74,7 +72,7 @@
                 echo "<p><output style='color: indianred'>Невозможно получить список игроков для второй команды</output></p>";
             }
             $playersStr = serialize($playersArray);
-//            $stmt->close();
+            $stmt->close();
             ?>
             <form name="addCompetitionInfo" method="POST" action="competition.php">
                 <?php
@@ -88,8 +86,7 @@
         } else {
             $_SESSION['errno'] = $stmt->errno;
             $_SESSION['error'] = $stmt->error;
-//            header("Location: ../helpers/error.php");
-            echo "8";
+            header("Location: ../helpers/error.php");
         }
     } else {
         echo "<div class=\"competition-form\"><br /><br />";
@@ -123,7 +120,7 @@
 
                     if ($stmt->num_rows == 0) {
                         $stmt->free_result();
-//                                $stmt->close();
+                                $stmt->close();
                         ?>
                         <div style="color: indianred;">
                             <p><output>В базе данных отсутствуют игры</output></p>
@@ -137,7 +134,7 @@
                         }
 
                         $stmt->free_result();
-//                                $stmt->close();
+                                $stmt->close();
                         ?>
                         <form name="insertNewGame" method="POST" action="competition.php">
                             <p><label>Выберите команду для добавления статистики</label></p>
@@ -152,15 +149,13 @@
                 } else {
                     $_SESSION['errno'] = $stmt->errno;
                     $_SESSION['error'] = $stmt->error;
-//            header("Location: ../helpers/error.php");
-                    echo "4";
+            header("Location: ../helpers/error.php");
                 }
             }
         } else {
             $_SESSION['errno'] = $stmt->errno;
             $_SESSION['error'] = $stmt->error;
-//                        header("Location: ../helpers/error.php");
-            echo "2";
+                        header("Location: ../helpers/error.php");
         }
     }
     ?>
