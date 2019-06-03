@@ -17,10 +17,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $stmt = $conn->stmt_init();
     $url = explode(' ', $_POST['delete']);
     $query = 'DELETE FROM ' . $url[1] . ' WHERE id = ?';
-    if ($stmt->prepare($query)) {
-        $stmt->bind_param('i', $url[0]);
-        if ($stmt->execute()) $stmt->close();
-    } else {
+    if ($stmt->prepare($query)
+        && $stmt->bind_param('i', $url[0])
+        && $stmt->execute()
+    ) $stmt->close();
+    else {
         $_SESSION['errno'] = $stmt->errno;
         $_SESSION['error'] = $stmt->error;
         header("Location: error.php");

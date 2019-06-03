@@ -5,7 +5,7 @@
     <title>Добавление команды</title>
 </head>
 <body>
-<div style="display: flex">
+<div style="display: flex; flex-wrap: nowrap; flex-direction: row;">
     <?php
     include_once($_SERVER['DOCUMENT_ROOT'] . '/IndZ/helpers/header.php');
     ?>
@@ -40,7 +40,6 @@
                             echo "<p><output style=\"color: seagreen;\">Новая команда успешно добавлена</output></p>";
 
                             $insertedTeam = $stmt->insert_id;
-                            $stmt->close();
                             $query = "INSERT INTO `teams_stats`(`team_id`) VALUES (?)";
                             if ($stmt->prepare($query)) {
                                 $stmt->bind_param('i', $insertedTeam);
@@ -49,7 +48,6 @@
                                 } else {
                                     echo "<p><output style=\"color: indianred;\">Статистика команды не была обновлена</output></p>";
                                 }
-                                $stmt->close();
 
                                 $query = "UPDATE `players` SET `team_id` = $insertedTeam WHERE id = $_POST[cap]";
                                 if ($stmt->prepare($query)) {
@@ -63,7 +61,6 @@
                                         </div>
                                         <?php
                                     }
-                                    $stmt->close();
                                 } else {
                                     $_SESSION['errno'] = $stmt->errno;
                                     $_SESSION['error'] = $stmt->error;
@@ -103,7 +100,6 @@
             $_SESSION['update'] = "Not updated";
             $players = '';
             $query = 'SELECT id, CONCAT(name, " ", surname) FROM players WHERE team_id IS NULL';
-            $stmt = $conn->stmt_init();
             if ($stmt->prepare($query)) {
                 if ($stmt->execute()) {
                     $stmt->bind_result($id, $cap_name);
@@ -111,7 +107,6 @@
 
                     if ($stmt->num_rows == 0 && !isset($_POST['edit'])) {
                         $stmt->free_result();
-                        $stmt->close();
                         ?>
                         <div style="color: indianred;">
                             <p>
@@ -139,7 +134,6 @@
                             $players .= "<option value=$id>$cap_name [$id]</option>";
 
                         $stmt->free_result();
-                        $stmt->close();
 
                         if (isset($_POST['edit']) || isset($_GET['edit'])) {
                             $_SESSION['update'] = isset($_POST['edit']) ? $_POST['edit'] : $_GET['edit'];
@@ -151,7 +145,6 @@
                                     $stmt->store_result();
                                     $stmt->fetch();
                                     $stmt->free_result();
-                                    $stmt->close();
                                     $query = 'SELECT CONCAT(name, " ", surname) FROM players WHERE id = ?';
                                     if ($stmt->prepare($query)) {
                                         $stmt->bind_param('i', $cap_id);
@@ -160,7 +153,6 @@
                                             $stmt->store_result();
                                             $stmt->fetch();
                                             $stmt->free_result();
-                                            $stmt->close();
                                         } else {
                                             $_SESSION['errno'] = $stmt->errno;
                                             $_SESSION['error'] = $stmt->error;
@@ -225,6 +217,7 @@
                 header("Location: ../helpers/error.php");
             }
         }
+        $stmt->close();
         ?>
     </div>
 

@@ -5,7 +5,7 @@
     <title>Добавление площадки</title>
 </head>
 <body>
-<div style="display: flex">
+<div style="display: flex; flex-wrap: nowrap; flex-direction: row;">
     <?php
     include_once($_SERVER['DOCUMENT_ROOT'] . '/IndZ/helpers/header.php');
     ?>

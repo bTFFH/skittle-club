@@ -20,16 +20,20 @@
                 <th>Игрок</th>
                 <th>Противник</th>
                 <th>Коли-во кеглей</th>
+                <th>Дата</th>
             </tr>
             <?php
             $query = 'SELECT * FROM Competitions_infoV';
             $stmt = $conn->stmt_init();
             if ($stmt->prepare($query)) {
                 if ($stmt->execute()) {
-                    $stmt->bind_result($id, $team, $player, $opponent, $amount);
+                    $stmt->bind_result($id, $team, $player, $opponent, $amount, $gameDate);
 
-                    while ($stmt->fetch())
-                        echo "<tr><td>$team</td><td>$player</td><td>$opponent</td><td>$amount</td></tr>";
+                    while ($stmt->fetch()) {
+                        $gameDate = substr($gameDate, 8, 2) . "/" . substr($gameDate, 5, 2) . "/" . substr($gameDate, 0, 4);
+                        echo "<tr><td>$team</td><td>$player</td><td>$opponent</td><td>$amount</td><td>$gameDate</td></tr>";
+                    }
+
                     $stmt->free_result();
                     $stmt->close();
                 } else {

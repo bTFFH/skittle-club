@@ -77,21 +77,14 @@
             $teams = '';
             $query = 'SELECT id, team_name FROM teams';
             $stmt = $conn->stmt_init();
-            if ($stmt->prepare($query)) {
-                if ($stmt->execute()) {
-                    $stmt->bind_result($id, $team_name);
-                    $stmt->store_result();
+            if ($stmt->prepare($query) && $stmt->execute()) {
+                $stmt->bind_result($id, $team_name);
+                $stmt->store_result();
 
-                    while ($stmt->fetch())
-                        $teams .= "<option value=$id>$team_name</option>";
+                while ($stmt->fetch())
+                    $teams .= "<option value=$id>$team_name</option>";
 
-                    $stmt->free_result();
-                    $stmt->close();
-                } else {
-                    $_SESSION['errno'] = $stmt->errno;
-                    $_SESSION['error'] = $stmt->error;
-                    header("Location: ../helpers/error.php");
-                }
+                $stmt->free_result();
             } else {
                 $_SESSION['errno'] = $stmt->errno;
                 $_SESSION['error'] = $stmt->error;
@@ -101,39 +94,30 @@
             if (isset($_POST['edit'])) {
                 $_SESSION['update'] = $_POST['edit'];
                 $query = 'SELECT name, surname, phone, street, house, team_id FROM players WHERE id = ?';
-                if ($stmt->prepare($query)) {
-                    $stmt->bind_param('i', $_POST['edit']);
-                    if ($stmt->execute()) {
-                        $stmt->bind_result($name, $surname, $phone, $street, $house, $team_id);
-                        $stmt->store_result();
-                        $stmt->fetch();
-                        $stmt->free_result();
-                        $stmt->close();
-                        if ($team_id !== "NULL") {
-                            $query = 'SELECT team_name FROM teams WHERE id = ?';
-                            if ($stmt->prepare($query)) {
-                                $stmt->bind_param('i', $team_id);
-                                if ($stmt->execute()) {
-                                    $stmt->bind_result($team_name);
-                                    $stmt->store_result();
-                                    $stmt->fetch();
-                                    $stmt->free_result();
-                                    $stmt->close();
-                                } else {
-                                    $_SESSION['errno'] = $stmt->errno;
-                                    $_SESSION['error'] = $stmt->error;
-                                    header("Location: ../helpers/error.php");
-                                }
-                            } else {
-                                $_SESSION['errno'] = $stmt->errno;
-                                $_SESSION['error'] = $stmt->error;
-                                header("Location: ../helpers/error.php");
-                            }
+                if ($stmt->prepare($query)
+                    && $stmt->bind_param('i', $_POST['edit'])
+                    && $stmt->execute()
+                ) {
+                    $stmt->bind_result($name, $surname, $phone, $street, $house, $team_id);
+                    $stmt->store_result();
+                    $stmt->fetch();
+                    $stmt->free_result();
+                    if ($team_id !== "NULL") {
+                        $query = 'SELECT team_name FROM teams WHERE id = ?';
+                        if ($stmt->prepare($query)
+                            && $stmt->bind_param('i', $team_id)
+                            && $stmt->execute()
+                        ) {
+                            $stmt->bind_result($team_name);
+                            $stmt->store_result();
+                            $stmt->fetch();
+                            $stmt->free_result();
+                            $stmt->close();
+                        } else {
+                            $_SESSION['errno'] = $stmt->errno;
+                            $_SESSION['error'] = $stmt->error;
+                            header("Location: ../helpers/error.php");
                         }
-                    } else {
-                        $_SESSION['errno'] = $stmt->errno;
-                        $_SESSION['error'] = $stmt->error;
-                        header("Location: ../helpers/error.php");
                     }
                 } else {
                     $_SESSION['errno'] = $stmt->errno;
