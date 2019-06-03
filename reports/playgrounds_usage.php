@@ -18,11 +18,13 @@
             <br/>
             <br/>
             <form name="PlaygroundsUsage" method="POST" action="playgrounds_usage.php">
-                <p><label class="date-label">Дата начала:<input class="date-input" type="date" name="startDate"
-                                                                value="<?php echo date("Y-m-d"); ?>" /></label></p>
-                <p><label class="date-label">Дата конца:<input
-                                class="date-input" type="date" name="endDate"
-                                value="<?php echo date("Y-m-d", time() + 60 * 60 * 24 * 7); ?>" /></label></p>
+                <div class="date">
+                    <p><label style="color: navy">Отчет об использовании полощадок</label></p>
+                    <p><label class="date-label">Дата начала:<input type="date" name="startDate"
+                                                                    value="<?php echo date("Y-m-d"); ?>" /></label></p>
+                    <p><label class="date-label">Дата конца:<input type="date" name="endDate"
+                                                                   value="<?php echo date("Y-m-d", time() + 60 * 60 * 24 * 7); ?>" /></label></p>
+                </div>
                 <div class="submit-btn" style="padding-left: 202px"><input type="submit" value="Сформировать"/></div>
             </form>
         </div>

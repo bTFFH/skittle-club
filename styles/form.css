@@ -15,7 +15,7 @@
     width: 350px;
 }
 
-.date-label {
+.date label {
     padding: 2px 5px;
     font-family: 'Lora', serif;
     font-size: 18px;
@@ -23,7 +23,7 @@
     margin-left: 5px;
 }
 
-.date-input {
+.date input {
     float: right;
     margin: 0 5px;
     font-family: 'Roboto', sans-serif;
