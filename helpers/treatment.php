@@ -15,17 +15,14 @@ function treat($str) {
 }
 
 function cryptPass($pass) {
-    $salt1 = random_bytes(7);
-    $salt2 = random_bytes(9);
-    $pass = crypt($pass, $salt1);
-    $pass = crypt($pass, $salt2);
+    $salt = random_bytes(15);
+    $pass = crypt($pass, $salt);
     $pass = substr($pass, 0, 32);
-    return array($salt1, $pass, $salt2);
+    return array($salt, $pass);
 }
 
-function cryptCheckPass($pass, $salt1, $salt2) {
-    $pass = crypt($pass, $salt1);
-    $pass = crypt($pass, $salt2);
+function cryptCheckPass($pass, $salt) {
+    $pass = crypt($pass, $salt);
     $pass = substr($pass, 0, 32);
     return $pass;
 }
