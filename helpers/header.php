@@ -1,10 +1,4 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf8">
-    <link rel='stylesheet' href='/IndZ/styles/header.css'>
-</head>
-<body>
+<link rel='stylesheet' href='/IndZ/styles/header.css'>
 <div style="display: flex; flex-wrap: wrap; flex-direction: column">
     <div class="logout-btn">
         <form name="logout" method="GET" action="/IndZ/helpers/logout.php">
@@ -50,5 +44,3 @@
         </nav>
     </div>
 </div>
-</body>
-</html>

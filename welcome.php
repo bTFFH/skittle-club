@@ -3,6 +3,7 @@
 <head>
     <meta charset='utf8'>
     <link rel='stylesheet' href='/IndZ/styles/welcome.css'>
+    <link rel='stylesheet' href='/IndZ/styles/header.css'>
     <title>Добро пожаловать!</title>
     <?php
     session_start();

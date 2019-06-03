@@ -1,25 +1,14 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset='utf8'>
-    <link rel="icon" href="/IndZ/images/logo.png">
-    <link rel='stylesheet' href='/IndZ/styles/table.css'>
-    <link rel='stylesheet' href='/IndZ/styles/buttons.css'>
+    <?php include_once($_SERVER['DOCUMENT_ROOT'] . '/IndZ/helpers/infoHead.php'); ?>
     <title>Игроки клуба</title>
-    <?php
-    session_start();
-    if (!isset($_SESSION['username']))
-        header("Location: " . $_SERVER['DOCUMENT_ROOT'] . "/IndZ/");
-    include_once($_SERVER['DOCUMENT_ROOT'] . '/IndZ/helpers/dbConnOpen.php');
-    ?>
 </head>
 <body>
 <div style="display: flex; flex-wrap: nowrap; flex-direction: row;">
-    <div>
-        <?php
-        include_once($_SERVER['DOCUMENT_ROOT'] . '/IndZ/helpers/header.php');
-        ?>
-    </div>
+    <?php
+    include_once($_SERVER['DOCUMENT_ROOT'] . '/IndZ/helpers/header.php');
+    ?>
     <div class="general-table">
         <br />
         <br />

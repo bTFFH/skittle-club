@@ -1,24 +1,14 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset='utf8'>
-    <link rel='stylesheet' href='/IndZ/styles/addition.css'>
-    <link rel='stylesheet' href='/IndZ/styles/buttons.css'>
+    <?php include_once($_SERVER['DOCUMENT_ROOT'] . '/IndZ/helpers/actionsHead.php'); ?>
     <title>Добавление команды</title>
-    <?php
-    session_start();
-    if (!isset($_SESSION['username']))
-        header("Location: " . $_SERVER['DOCUMENT_ROOT'] . "/IndZ/");
-    include_once($_SERVER['DOCUMENT_ROOT'] . '/IndZ/helpers/dbConnOpen.php');
-    ?>
 </head>
 <body>
 <div style="display: flex">
-    <div style="flex-wrap: nowrap">
-        <?php
-        include_once($_SERVER['DOCUMENT_ROOT'] . '/IndZ/helpers/header.php');
-        ?>
-    </div>
+    <?php
+    include_once($_SERVER['DOCUMENT_ROOT'] . '/IndZ/helpers/header.php');
+    ?>
     <div class="add-form">
         <br />
         <br />

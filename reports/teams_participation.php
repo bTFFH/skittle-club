@@ -1,25 +1,16 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset='utf8'>
-    <link rel='stylesheet' href='/IndZ/styles/table.css'>
+    <?php include_once($_SERVER['DOCUMENT_ROOT'] . '/IndZ/helpers/statsHead.php'); ?>
     <link rel='stylesheet' href='/IndZ/styles/form.css'>
     <link rel='stylesheet' href='/IndZ/styles/buttons.css'>
     <title>Отчет об участии команд</title>
-    <?php
-    session_start();
-    if (!isset($_SESSION['username']))
-        header("Location: " . $_SERVER['DOCUMENT_ROOT'] . "/IndZ/");
-    include_once($_SERVER['DOCUMENT_ROOT'] . '/IndZ/helpers/dbConnOpen.php');
-    ?>
 </head>
 <body>
 <div style="display: flex">
-    <div style="flex-wrap: nowrap">
-        <?php
-        include_once($_SERVER['DOCUMENT_ROOT'] . '/IndZ/helpers/header.php');
-        ?>
-    </div>
+    <?php
+    include_once($_SERVER['DOCUMENT_ROOT'] . '/IndZ/helpers/header.php');
+    ?>
     <?php
     if ($_SERVER['REQUEST_METHOD'] != "POST") {
         ?>
