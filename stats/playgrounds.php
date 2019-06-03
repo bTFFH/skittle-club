@@ -32,16 +32,25 @@
             $query = 'SELECT * FROM Playgrounds_games_amountV';
             $stmt = $conn->stmt_init();
             if ($stmt->prepare($query)) {
-                $stmt->execute();
-                $stmt->bind_result($id, $name, $features, $amount);
+                if ($stmt->execute()) {
+                    $stmt->bind_result($id, $name, $features, $amount);
 
-                while ($stmt->fetch()) {
-                    if ($features == '') $features = 'Нет данных';
-                    echo "<tr><td>$name</td><td style='max-width: 550px'>$features</td><td>$amount</td></tr>";
+                    while ($stmt->fetch()) {
+                        if ($features == '') $features = 'Нет данных';
+                        echo "<tr><td>$name</td><td style='max-width: 550px'>$features</td><td>$amount</td></tr>";
+                    }
+
+                    $stmt->free_result();
+                    $stmt->close();
+                } else {
+                    $_SESSION['errno'] = $stmt->errno;
+                    $_SESSION['error'] = $stmt->error;
+                    header("Location: ../helpers/error.php");
                 }
-
-                $stmt->free_result();
-                $stmt->close();
+            } else {
+                $_SESSION['errno'] = $stmt->errno;
+                $_SESSION['error'] = $stmt->error;
+                header("Location: ../helpers/error.php");
             }
             ?>
         </table>

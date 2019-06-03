@@ -36,13 +36,23 @@
             $query = 'SELECT * FROM Players_statsV';
             $stmt = $conn->stmt_init();
             if ($stmt->prepare($query)) {
-                $stmt->execute();
-                $stmt->bind_result($id, $name, $surname, $team, $skAmount, $skWeekAmount, $gamesAmount, $effectiviness);
+                if ($stmt->execute()) {
+                    $stmt->bind_result($id, $name, $surname, $team, $skAmount, $skWeekAmount, $gamesAmount, $effectiviness);
 
-                while ($stmt->fetch())
-                    echo "<tr><td>$name $surname</td><td>$team</td><td>$skAmount</td><td>$skWeekAmount</td><td>$gamesAmount</td><td>$effectiviness</td></tr>";
-                $stmt->free_result();
-                $stmt->close();
+                    while ($stmt->fetch())
+                        echo "<tr><td>$name $surname</td><td>$team</td><td>$skAmount</td><td>$skWeekAmount</td><td>$gamesAmount</td><td>$effectiviness</td></tr>";
+
+                    $stmt->free_result();
+                    $stmt->close();
+                } else {
+                $_SESSION['errno'] = $stmt->errno;
+                $_SESSION['error'] = $stmt->error;
+                header("Location: ../helpers/error.php");
+            }
+            } else {
+                $_SESSION['errno'] = $stmt->errno;
+                $_SESSION['error'] = $stmt->error;
+                header("Location: ../helpers/error.php");
             }
             ?>
         </table>

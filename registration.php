@@ -23,32 +23,45 @@
             include_once($_SERVER['DOCUMENT_ROOT'] . '/IndZ/helpers/dbConnOpen.php');
             $query = 'SELECT username FROM users WHERE username = ?';
             $stmt = $conn->stmt_init();
-            $stmt->prepare($query);
-            $stmt->bind_param('s', $username);
-            if ($stmt->execute()) {
-                $stmt->store_result();
-                if ($stmt->num_rows !== 0) {
-                    $stmt->free_result();
-                    $stmt->close();
-                    include_once($_SERVER['DOCUMENT_ROOT'] . "/IndZ/helpers/dbConnClose.php");
-//                    echo $username;
-                    header("Location: registration.php/?err=l", true);
-                } else {
-                    $stmt->free_result();
-                    $query = "INSERT INTO `users`(`username`, `name`, `surname`, `passwd`) VALUES (?, ?, ?, ?)";
-                    $stmt->prepare($query);
-                    $passwd = md5($passwd);
-                    $stmt->bind_param('ssss', $_POST['username'], $_POST['name'], $_POST['surname'], $passwd);
-                    if ($stmt->execute()) {
+            if ($stmt->prepare($query)) {
+                $stmt->bind_param('s', $username);
+                if ($stmt->execute()) {
+                    $stmt->store_result();
+                    if ($stmt->num_rows !== 0) {
+                        $stmt->free_result();
                         $stmt->close();
                         include_once($_SERVER['DOCUMENT_ROOT'] . "/IndZ/helpers/dbConnClose.php");
-                        header("Location: index.php");
+                        header("Location: registration.php/?err=l", true);
                     } else {
-                        $stmt->close();
-                        include_once($_SERVER['DOCUMENT_ROOT'] . "/IndZ/helpers/dbConnClose.php");
-                        header("Location: registration.php/?err=t", true);
+                        $stmt->free_result();
+                        $query = "INSERT INTO `users`(`username`, `name`, `surname`, `passwd`) VALUES (?, ?, ?, ?)";
+                        if ($stmt->prepare($query)) {
+                            $passwd = md5($passwd);
+                            $stmt->bind_param('ssss', $_POST['username'], $_POST['name'], $_POST['surname'], $passwd);
+                            if ($stmt->execute()) {
+                                $stmt->close();
+                                include_once($_SERVER['DOCUMENT_ROOT'] . "/IndZ/helpers/dbConnClose.php");
+                                header("Location: index.php");
+                            } else {
+                                $stmt->close();
+                                include_once($_SERVER['DOCUMENT_ROOT'] . "/IndZ/helpers/dbConnClose.php");
+                                header("Location: registration.php/?err=t", true);
+                            }
+                        } else {
+                            $_SESSION['errno'] = $stmt->errno;
+                            $_SESSION['error'] = $stmt->error;
+                            header("Location: ../helpers/error.php");
+                        }
                     }
+                } else {
+                    $_SESSION['errno'] = $stmt->errno;
+                    $_SESSION['error'] = $stmt->error;
+                    header("Location: ../helpers/error.php");
                 }
+            } else {
+                $_SESSION['errno'] = $stmt->errno;
+                $_SESSION['error'] = $stmt->error;
+                header("Location: ../helpers/error.php");
             }
             include_once($_SERVER['DOCUMENT_ROOT'] . "/IndZ/helpers/dbConnClose.php");
         }

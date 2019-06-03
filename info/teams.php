@@ -35,13 +35,22 @@
             $query = 'SELECT * FROM TeamsV';
             $stmt = $conn->stmt_init();
             if ($stmt->prepare($query)) {
-                $stmt->execute();
-                $stmt->bind_result($id, $team, $captain);
+                if ($stmt->execute()) {
+                    $stmt->bind_result($id, $team, $captain);
 
-                while ($stmt->fetch())
-                    echo "<tr><td>$team</td><td>$captain</td><td class='edit-btn'><form method='POST' action='/IndZ/actions/team.php'><button type='submit' name='edit' value=$id><img src='/IndZ/images/settings.svg' alt='Изменить'/></button></form></td><td class='edit-btn'><form method='POST' action='/IndZ/helpers/delete.php'><button type='submit' name='delete' value=\"" . $id . ' teams"' . "><img src='/IndZ/images/delete.svg' alt='Удалить'/></button></form></td></tr>";
-                $stmt->free_result();
-                $stmt->close();
+                    while ($stmt->fetch())
+                        echo "<tr><td>$team</td><td>$captain</td><td class='edit-btn'><form method='POST' action='/IndZ/actions/team.php'><button type='submit' name='edit' value=$id><img src='/IndZ/images/settings.svg' alt='Изменить'/></button></form></td><td class='edit-btn'><form method='POST' action='/IndZ/helpers/delete.php'><button type='submit' name='delete' value=\"" . $id . ' teams"' . "><img src='/IndZ/images/delete.svg' alt='Удалить'/></button></form></td></tr>";
+                    $stmt->free_result();
+                    $stmt->close();
+                } else {
+                $_SESSION['errno'] = $stmt->errno;
+                $_SESSION['error'] = $stmt->error;
+                header("Location: ../helpers/error.php");
+            }
+            } else {
+                $_SESSION['errno'] = $stmt->errno;
+                $_SESSION['error'] = $stmt->error;
+                header("Location: ../helpers/error.php");
             }
             ?>
         </table>

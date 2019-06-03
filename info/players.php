@@ -42,19 +42,34 @@
              * результат выполнения запроса всегда будет буферизованным
              */
             if ($stmt->prepare($query)) {
-                $stmt->execute();
-                $stmt->bind_result($id, $name, $surname, $phone, $street, $house, $team);
-                $stmt->store_result();  // вернет буферизованный запрос
-                /*$result = $stmt->get_result();  // получен ответ как класс mysqli_result
+                if ($stmt->execute()) {
 
-                while ($row = $result->fetch_row())  // $result->fetch_assoc() для получения асоциативного массива
-                    echo $row;*/
+                    // привязка переменных к подготовленнуму запросу
+                    $stmt->bind_result($id, $name, $surname, $phone, $street, $house, $team);
 
-                while ($stmt->fetch())
-                    echo "<tr><td>$name</td><td>$surname</td><td>$phone</td><td>$street, $house</td><td>$team</td><td class='edit-btn'><form method='POST' action='/IndZ/actions/player.php'><button type='submit' name='edit' value=$id><img src='/IndZ/images/settings.svg' alt='Изменить'/></button></form></td><td class='edit-btn'><form method='POST' action='/IndZ/helpers/delete.php'><button type='submit' name='delete' value=\"" . $id . ' players"' . "><img src='/IndZ/images/delete.svg' alt='Удалить'/></button></form></td></tr>";
+                    // вернет буферизованный запрос (передает результат запроса на клиента)
+                    $stmt->store_result();
 
-                $stmt->free_result();
-                $stmt->close();
+                    // вернет ответ как класс mysqli_result (вернет результат в виде массива)
+                    /*$result = $stmt->get_result();
+
+                    while ($row = $result->fetch_row())  // $result->fetch_assoc() для получения асоциативного массива
+                        echo $row;*/
+
+                    while ($stmt->fetch())
+                        echo "<tr><td>$name</td><td>$surname</td><td>$phone</td><td>$street, $house</td><td>$team</td><td class='edit-btn'><form method='POST' action='/IndZ/actions/player.php'><button type='submit' name='edit' value=$id><img src='/IndZ/images/settings.svg' alt='Изменить'/></button></form></td><td class='edit-btn'><form method='POST' action='/IndZ/helpers/delete.php'><button type='submit' name='delete' value=\"" . $id . ' players"' . "><img src='/IndZ/images/delete.svg' alt='Удалить'/></button></form></td></tr>";
+
+                    $stmt->free_result();  // освобождает буфер от результата запроса
+                    $stmt->close();  // закрывает только подготовленный запрос
+                } else {
+                $_SESSION['errno'] = $stmt->errno;
+                $_SESSION['error'] = $stmt->error;
+                header("Location: ../helpers/error.php");
+            }
+            } else {
+                $_SESSION['errno'] = $stmt->errno;
+                $_SESSION['error'] = $stmt->error;
+                header("Location: ../helpers/error.php");
             }
             ?>
         </table>

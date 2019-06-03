@@ -43,8 +43,17 @@
         $stmt = $conn->stmt_init();
         if ($stmt->prepare($query)) {
             $stmt->bind_param('ss', $std, $end);
-            $stmt->execute();
-            $result = $stmt->get_result();
+            if ($stmt->execute()) {
+                $result = $stmt->get_result();
+            } else {
+                $_SESSION['errno'] = $stmt->errno;
+                $_SESSION['error'] = $stmt->error;
+                header("Location: ../helpers/error.php");
+            }
+        } else {
+            $_SESSION['errno'] = $stmt->errno;
+            $_SESSION['error'] = $stmt->error;
+            header("Location: ../helpers/error.php");
         }
         $std = substr($std, 8, 2) . '.' . substr($std, 5, 2) . '.' . substr($std, 0, 4);
         $end = substr($end, 8, 2) . '.' . substr($end, 5, 2) . '.' . substr($end, 0, 4);

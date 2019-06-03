@@ -32,17 +32,26 @@
             $stmt = $conn->stmt_init();
 
             if ($stmt->prepare($query)) {
-                $stmt->execute();
-                $stmt->bind_result($playground, $efficiency);
-                $stmt->store_result();
+                if ($stmt->execute()) {
+                    $stmt->bind_result($playground, $efficiency);
+                    $stmt->store_result();
 
-                while ($stmt->fetch()) {
-                    if ($efficiency === null) continue;
-                    echo "<tr><td>$playground</td><td>$efficiency</td></tr>";
+                    while ($stmt->fetch()) {
+                        if ($efficiency === null) continue;
+                        echo "<tr><td>$playground</td><td>$efficiency</td></tr>";
+                    }
+
+                    $stmt->free_result();
+                    $stmt->close();
+                } else {
+                    $_SESSION['errno'] = $stmt->errno;
+                    $_SESSION['error'] = $stmt->error;
+                    header("Location: ../helpers/error.php");
                 }
-
-                $stmt->free_result();
-                $stmt->close();
+            } else {
+                $_SESSION['errno'] = $stmt->errno;
+                $_SESSION['error'] = $stmt->error;
+                header("Location: ../helpers/error.php");
             }
             ?>
         </table>

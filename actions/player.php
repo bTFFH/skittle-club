@@ -70,6 +70,10 @@
                     </form>
                     <?php
                 }
+            } else {
+                $_SESSION['errno'] = $stmt->errno;
+                $_SESSION['error'] = $stmt->error;
+                header("Location: ../helpers/error.php");
             }
         } else {
             $_SESSION['update'] = "Not updated";
@@ -84,14 +88,24 @@
             $query = 'SELECT id, team_name FROM teams';
             $stmt = $conn->stmt_init();
             if ($stmt->prepare($query)) {
-                $stmt->execute();
-                $stmt->bind_result($id, $team_name);
-                $stmt->store_result();
+                if ($stmt->execute()) {
+                    $stmt->bind_result($id, $team_name);
+                    $stmt->store_result();
 
-                while ($stmt->fetch())
-                    $teams .= "<option value=$id>$team_name</option>";
+                    while ($stmt->fetch())
+                        $teams .= "<option value=$id>$team_name</option>";
 
-                $stmt->free_result();
+                    $stmt->free_result();
+                    $stmt->close();
+                } else {
+                    $_SESSION['errno'] = $stmt->errno;
+                    $_SESSION['error'] = $stmt->error;
+                    header("Location: ../helpers/error.php");
+                }
+            } else {
+                $_SESSION['errno'] = $stmt->errno;
+                $_SESSION['error'] = $stmt->error;
+                header("Location: ../helpers/error.php");
             }
 
             if (isset($_POST['edit'])) {
@@ -104,6 +118,7 @@
                         $stmt->store_result();
                         $stmt->fetch();
                         $stmt->free_result();
+                        $stmt->close();
                         if ($team_id !== "NULL") {
                             $query = 'SELECT team_name FROM teams WHERE id = ?';
                             if ($stmt->prepare($query)) {
@@ -113,10 +128,27 @@
                                     $stmt->store_result();
                                     $stmt->fetch();
                                     $stmt->free_result();
+                                    $stmt->close();
+                                } else {
+                                    $_SESSION['errno'] = $stmt->errno;
+                                    $_SESSION['error'] = $stmt->error;
+                                    header("Location: ../helpers/error.php");
                                 }
+                            } else {
+                                $_SESSION['errno'] = $stmt->errno;
+                                $_SESSION['error'] = $stmt->error;
+                                header("Location: ../helpers/error.php");
                             }
                         }
+                    } else {
+                        $_SESSION['errno'] = $stmt->errno;
+                        $_SESSION['error'] = $stmt->error;
+                        header("Location: ../helpers/error.php");
                     }
+                } else {
+                    $_SESSION['errno'] = $stmt->errno;
+                    $_SESSION['error'] = $stmt->error;
+                    header("Location: ../helpers/error.php");
                 }
             }
 
@@ -125,7 +157,6 @@
                 $team_name = "Не в команде";
             }
 
-            $stmt->close();
             ?>
             <form name="insertNewPlayer" method="POST" action="player.php">
                 <p><label>Имя игрока<input type="text" name="name" maxlength="50" value="<?php echo $name; ?>"

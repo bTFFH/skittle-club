@@ -40,6 +40,11 @@
                         </form>
                         <?php
                     }
+                    $stmt->close();
+                } else {
+                    $_SESSION['errno'] = $stmt->errno;
+                    $_SESSION['error'] = $stmt->error;
+                    header("Location: ../helpers/error.php");
                 }
             } else {
                 $query = 'UPDATE `playgrounds` SET `name` = ?, `features` = ? WHERE `id` = ?';
@@ -60,6 +65,10 @@
                         </form>
                         <?php
                     }
+                } else {
+                    $_SESSION['errno'] = $stmt->errno;
+                    $_SESSION['error'] = $stmt->error;
+                    header("Location: ../helpers/error.php");
                 }
             }
         $stmt->close();
@@ -79,7 +88,15 @@
                         $stmt->free_result();
                         $stmt->close();
                         if ($features === "Нет данных") $features = '';
+                    } else {
+                        $_SESSION['errno'] = $stmt->errno;
+                        $_SESSION['error'] = $stmt->error;
+                        header("Location: ../helpers/error.php");
                     }
+                } else {
+                    $_SESSION['errno'] = $stmt->errno;
+                    $_SESSION['error'] = $stmt->error;
+                    header("Location: ../helpers/error.php");
                 }
             }
             ?>

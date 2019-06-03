@@ -2,6 +2,7 @@
 <html>
 <head>
     <meta charset="utf8">
+    <title>Удаление</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lora&display=swap&subset=cyrillic">
     <?php
     session_start();
@@ -22,8 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     } else {
         $_SESSION['errno'] = $stmt->errno;
         $_SESSION['error'] = $stmt->error;
-        echo "error in preparing";
-//        header("Location: error.php");
+        header("Location: error.php");
     }
     ?>
     <div style="display: flex; flex-wrap: nowrap; flex-direction: row;">
@@ -32,15 +32,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         ?>
         <div style="display: flex; flex-wrap: wrap; flex-direction: column; margin: 0 auto">
             <div style="padding-top: 200px">
-                    <p>
-                        <output style="font-family: 'Lora', serif; font-size: 22px; font-style: normal; color: seagreen">Запись успешно удалена</output>
-                    </p>
+                <p>
+                    <output style="font-family: 'Lora', serif; font-size: 22px; font-style: normal; color: seagreen">Запись успешно удалена</output>
+                </p>
             </div>
         </div>
     </div>
     <?php
 } else {
-    header("Location: " . $_SERVER['DOCUMENT_ROOT'] . "/IndZ/");
+    unset($_SESSION['username']);
+    header("Location: ../");
 }
 ?>
 </body>
