@@ -36,12 +36,12 @@
                 } else {
                     $_SESSION['errno'] = $stmt->errno;
                     $_SESSION['error'] = $stmt->error;
-                    header("Location: ../helpers/error.php");
+                    header("Location: ../helpers/error.php", true);
                 }
             } else {
                 $_SESSION['errno'] = $stmt->errno;
                 $_SESSION['error'] = $stmt->error;
-                header("Location: ../helpers/error.php");
+                header("Location: ../helpers/error.php", true);
             }
             ?>
         </table>

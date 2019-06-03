@@ -26,13 +26,13 @@
     } else {
         require_once($_SERVER['DOCUMENT_ROOT'] . "/IndZ/helpers/treatment.php");
         include_once($_SERVER['DOCUMENT_ROOT'] . "/IndZ/helpers/dbConnOpen.php");
-        $query = 'SELECT username, passwd, name FROM users WHERE username = ?';
+        $query = 'SELECT username, passwd, name, salt, sugar FROM users WHERE username = ?';
         $stmt = $conn->stmt_init();
         if ($stmt->prepare($query)
             && $stmt->bind_param('s', $_POST['username'])
             && $stmt->execute()
         ) {
-            $stmt->bind_result($username, $passwd, $name);
+            $stmt->bind_result($username, $passwd, $name, $salt, $sugar);
             $stmt->store_result();
             if ($stmt->num_rows === 0) {
                 $stmt->free_result();
@@ -41,16 +41,16 @@
                 echo "<input name='err' value='t' hidden />";
                 header("Location: index.php?err=t", true);
             } else {
-                $pwd = md5($_POST['passwd']);
+                $pwd = cryptCheckPass($_POST['passwd'], $salt, $sugar);
                 $stmt->fetch();
-                if ($passwd === $pwd) {
+                if (password_verify($pwd, $passwd)) {
                     session_start();
                     $_SESSION['username'] = $username;
                     $_SESSION['name'] = $name;
                     $stmt->free_result();
                     $stmt->close();
                     include_once($_SERVER['DOCUMENT_ROOT'] . "/IndZ/helpers/dbConnClose.php");
-                    header("Location: welcome.php");
+                    header("Location: welcome.php", true);
                 } else {
                     $stmt->free_result();
                     $stmt->close();
@@ -61,7 +61,7 @@
         } else {
             $_SESSION['errno'] = $stmt->errno;
             $_SESSION['error'] = $stmt->error;
-            header("Location: ../helpers/error.php");
+            header("Location: ../helpers/error.php", true);
         }
 
         session_start();

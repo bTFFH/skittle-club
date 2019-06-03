@@ -36,17 +36,17 @@
                     header("Location: registration.php/?err=l", true);
                 } else {
                     $stmt->free_result();
-                    $query = "INSERT INTO `users`(`username`, `name`, `surname`, `passwd`) VALUES (?, ?, ?, ?)";
+                    $query = "INSERT INTO `users`(`username`, `name`, `surname`, `passwd`, `salt`, `sugar`) VALUES (?, ?, ?, ?, ?, ?)";
                     if ($stmt->prepare($query)) {
-                        $passwd = md5($passwd);
-                        $stmt->bind_param('ssss', $_POST['username'], $_POST['name'], $_POST['surname'], $passwd);
+                        $pass = cryptPass($passwd);
+                        $stmt->bind_param('ssssss', $_POST['username'], $_POST['name'], $_POST['surname'], $pass[1], $pass[0], $pass[2]);
                         if ($stmt->execute()) {
                             $stmt->close();
                             include_once($_SERVER['DOCUMENT_ROOT'] . "/IndZ/helpers/dbConnClose.php");
                             session_start();
                             $_SESSION['username'] = $_POST['username'];
                             $_SESSION['name'] = $_POST['name'];
-                            header("Location: welcome.php");
+                            header("Location: welcome.php", true);
                         } else {
                             $stmt->close();
                             include_once($_SERVER['DOCUMENT_ROOT'] . "/IndZ/helpers/dbConnClose.php");

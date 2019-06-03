@@ -28,7 +28,7 @@
         } else {
             $_SESSION['errno'] = $stmt->errno;
             $_SESSION['error'] = $stmt->error;
-            header("Location: ../helpers/error.php");
+            header("Location: ../helpers/error.php", true);
         }
     } elseif ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['competition'])) {
         echo "<div class=\"add-form\"  style='flex-basis: auto; min-width: 450px; max-width: 900px'><br /><br />";
@@ -57,7 +57,7 @@
             } else {
                 $_SESSION['errno'] = $stmt->errno;
                 $_SESSION['error'] = $stmt->error;
-                    header("Location: ../helpers/error.php");
+                    header("Location: ../helpers/error.php", true);
             }
             $stmt->bind_param('i', $team2);
             if ($stmt->execute()) {
@@ -86,7 +86,7 @@
         } else {
             $_SESSION['errno'] = $stmt->errno;
             $_SESSION['error'] = $stmt->error;
-            header("Location: ../helpers/error.php");
+            header("Location: ../helpers/error.php", true);
         }
     } else {
         echo "<div class=\"competition-form\"><br /><br />";
@@ -149,13 +149,13 @@
                 } else {
                     $_SESSION['errno'] = $stmt->errno;
                     $_SESSION['error'] = $stmt->error;
-            header("Location: ../helpers/error.php");
+            header("Location: ../helpers/error.php", true);
                 }
             }
         } else {
             $_SESSION['errno'] = $stmt->errno;
             $_SESSION['error'] = $stmt->error;
-                        header("Location: ../helpers/error.php");
+                        header("Location: ../helpers/error.php", true);
         }
     }
     ?>

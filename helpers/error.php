@@ -8,7 +8,7 @@
     <?php
     session_start();
     if (!isset($_SESSION['username']))
-        header("Location: " . $_SERVER['DOCUMENT_ROOT'] . "/IndZ/");
+        header("Location: " . $_SERVER['DOCUMENT_ROOT'] . "/IndZ/", true);
 //    if (!isset($_SESSION['errno']) || !isset($_SESSION['error']))
 //        header("Location: ../", true, 303);
     include_once($_SERVER['DOCUMENT_ROOT'] . '/IndZ/helpers/dbConnOpen.php');
