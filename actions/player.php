@@ -14,21 +14,55 @@
         <br />
         <?php
         if ($_SERVER['REQUEST_METHOD'] == 'POST' && !isset($_POST['edit'])) {
+            $stmt = $conn->stmt_init();
+            $query = 'SELECT id, name FROM streets';
+            $streets = [];
+            if ($stmt->prepare($query) && $stmt->execute()) {
+                $stmt->bind_result($id, $street);
+
+                while ($stmt->fetch())
+                    $streets[$street] = $id;
+
+                $stmt->free_result();
+            } else {
+                $_SESSION['errno'] = $stmt->errno;
+                $_SESSION['error'] = $stmt->error;
+                header("Location: ../helpers/error.php", true, 303);
+            }
+
+            if (in_array($_POST['street'], array_keys($streets))) {
+                $streetId = $streets[$_POST['street']];
+            } else {
+                $query = 'INSERT INTO `streets`(`name`) VALUES (?)';
+                if ($stmt->prepare($query)
+                    && $stmt->bind_param('s', $_POST['street'])
+                    && $stmt->execute()
+                ) {
+                    $streetId = $stmt->insert_id;
+                    $stmt->free_result();
+                }
+                else {
+                    $_SESSION['errno'] = $conn->errno;
+                    $_SESSION['error'] = $conn->error;
+                    header("Location: ../helpers/error.php", true, 303);
+                }
+            }
+
             if ($_SESSION['update'] !== "Not updated")
                 $query = $_POST['team'] == 0 ?
-                    "UPDATE `players` SET `name` = ?, `surname` = ?, `phone` = ?, `street` = ?, `house` = ?, `team_id` = NULL WHERE id = $_SESSION[update]" :
-                    "UPDATE `players` SET `name` = ?, `surname` = ?, `phone` = ?, `street` = ?, `house` = ?, `team_id` = ? WHERE id = $_SESSION[update]";
+                    "UPDATE `players` SET `name` = ?, `surname` = ?, `phone` = ?, `street_id` = ?, `house` = ?, `team_id` = NULL WHERE id = $_SESSION[update]" :
+                    "UPDATE `players` SET `name` = ?, `surname` = ?, `phone` = ?, `street_id` = ?, `house` = ?, `team_id` = ? WHERE id = $_SESSION[update]";
             else
                 $query = $_POST['team'] == 0 ?
-                    'INSERT INTO `players`(`name`, `surname`, `phone`, `street`, `house`) VALUES (?, ?, ?, ?, ?)' :
-                    'INSERT INTO `players`(`name`, `surname`, `phone`, `street`, `house`, `team_id`) VALUES (?, ?, ?, ?, ?, ?)';
-            $stmt = $conn->stmt_init();
+                    'INSERT INTO `players`(`name`, `surname`, `phone`, `street_id`, `house`) VALUES (?, ?, ?, ?, ?)' :
+                    'INSERT INTO `players`(`name`, `surname`, `phone`, `street_id`, `house`, `team_id`) VALUES (?, ?, ?, ?, ?, ?)';
+
             if ($stmt->prepare($query)) {
                 $_POST['team'] == 0 ?
-                    $stmt->bind_param('ssisi', $_POST['name'], $_POST['surname'],
-                        $_POST['phone'], $_POST['street'], $_POST['house']) :
-                    $stmt->bind_param('ssisii', $_POST['name'], $_POST['surname'],
-                        $_POST['phone'], $_POST['street'], $_POST['house'], $_POST['team']);
+                    $stmt->bind_param('ssiii', $_POST['name'], $_POST['surname'],
+                        $_POST['phone'], $streetId, $_POST['house']) :
+                    $stmt->bind_param('ssiiii', $_POST['name'], $_POST['surname'],
+                        $_POST['phone'], $streetId, $_POST['house'], $_POST['team']);
                 if ($stmt->execute()) {
                     if ($_SESSION['update'] !== "Not updated")
                         echo "<p><output style=\"color: seagreen;\">Игрок успешно обновлен</output></p>";
@@ -46,10 +80,8 @@
                         }
                     }
 
-                    $stmt->close();
                     unset($_SESSION['update']);
                 } else {
-                    $stmt->close();
                     ?>
                     <form name="errorNewPlayer" method="GET" action="player.php" style="border: none">
                         <div style="color: indianred;">
@@ -61,9 +93,9 @@
                     <?php
                 }
             } else {
-                $_SESSION['errno'] = $stmt->errno;
-                $_SESSION['error'] = $stmt->error;
-                header("Location: ../helpers/error.php", true);
+                $_SESSION['errno'] = $conn->errno;
+                $_SESSION['error'] = $conn->error;
+                header("Location: ../helpers/error.php", true, 303);
             }
         } else {
             $_SESSION['update'] = "Not updated";
@@ -93,33 +125,42 @@
 
             if (isset($_POST['edit'])) {
                 $_SESSION['update'] = $_POST['edit'];
-                $query = 'SELECT name, surname, phone, street, house, team_id FROM players WHERE id = ?';
+                $query = 'SELECT name, surname, phone, street_id, house, team_id FROM players WHERE id = ?';
                 if ($stmt->prepare($query)
                     && $stmt->bind_param('i', $_POST['edit'])
                     && $stmt->execute()
                 ) {
-                    $stmt->bind_result($name, $surname, $phone, $street, $house, $team_id);
+                    $stmt->bind_result($name, $surname, $phone, $streetId, $house, $team_id);
                     $stmt->store_result();
                     $stmt->fetch();
                     $stmt->free_result();
                     if ($team_id !== "NULL") {
-                        $query = 'SELECT team_name FROM teams WHERE id = ?';
-                        if ($stmt->prepare($query)
-                            && $stmt->bind_param('i', $team_id)
-                            && $stmt->execute()
-                        ) {
-                            $stmt->bind_result($team_name);
-                            $stmt->store_result();
-                            $stmt->fetch();
-                            $stmt->free_result();
-                            $stmt->close();
+                        $query = "SELECT `team_name` FROM `teams` WHERE `id` = $team_id";
+                        if ($result = $conn->query($query)) {
+                            $row = $result->fetch_row();
+                            $result->free();
+                            $team_name = $row[0];
                         } else {
-                            $_SESSION['errno'] = $stmt->errno;
-                            $_SESSION['error'] = $stmt->error;
+                            $_SESSION['qerr'] = $query;
+                            $_SESSION['errno'] = $conn->errno;
+                            $_SESSION['error'] = $conn->error;
                             header("Location: ../helpers/error.php", true);
                         }
                     }
+
+                    $query = "SELECT `name` FROM `streets` WHERE `id` = $streetId";
+                    if ($result = $conn->query($query)) {
+                        $row = $result->fetch_row();
+                        $result->free();
+                        $street = $row[0];
+                    } else {
+                        $_SESSION['qerr'] = $query." --- $name, $surname, $phone, $streetId, $house, $team_id, $_POST[edit]";
+                        $_SESSION['errno'] = $conn->errno;
+                        $_SESSION['error'] = $conn->error;
+                        header("Location: ../helpers/error.php", true);
+                    }
                 } else {
+                    $_SESSION['qerr'] = $query;
                     $_SESSION['errno'] = $stmt->errno;
                     $_SESSION['error'] = $stmt->error;
                     header("Location: ../helpers/error.php", true);
@@ -154,6 +195,7 @@
             </form>
             <?php
         }
+        $stmt->close();
         ?>
     </div>
 

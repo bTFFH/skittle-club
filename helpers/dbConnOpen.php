@@ -8,7 +8,7 @@ if (!isset($_SESSION['username']))
 $hostname = "localhost";
 $username = "root";
 $password = "";
-$dbName = "skittle_club";
+$dbName = "skittle_club2";
 $port= 3306;
 /* Создать соединение */
 $conn = new mysqli($hostname, $username, $password, $dbName, $port);

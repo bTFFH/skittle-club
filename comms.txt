@@ -1,0 +1,368 @@
+CREATE TABLE IF NOT EXISTS users(
+    username VARCHAR(10) PRIMARY KEY,
+    name VARCHAR(50) NOT NULL,
+    surname VARCHAR(60) NOT NULL,
+    passwd VARCHAR(32) NOT NULL,
+    salt	VARCHAR(15) NOT NULL
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+CREATE TABLE IF NOT EXISTS players(
+    id INT(10) UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(50) NOT NULL,
+    surname VARCHAR(100) NOT NULL,
+    phone BIGINT(11) UNSIGNED NOT NULL,
+    street_id INT(10) UNSIGNED NOT NULL,
+    house TINYINT(3) UNSIGNED NOT NULL,
+    team_id INT(10) UNSIGNED NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
+
+
+CREATE TABLE IF NOT EXISTS players_stats(
+    player_id INT(10) UNSIGNED PRIMARY KEY,
+    skittles_amount INT(10) UNSIGNED DEFAULT 0,
+    last_week_skittles INT(3) UNSIGNED DEFAULT 0,
+    games_amount INT(5) UNSIGNED DEFAULT 0,
+    effectiveness FLOAT(5, 4) UNSIGNED DEFAULT 0,	
+    CONSTRAINT FK_player_id FOREIGN KEY(player_id) REFERENCES players(id) ON UPDATE CASCADE ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+CREATE TABLE IF NOT EXISTS teams(
+    id INT(10) UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+    team_name VARCHAR(50) UNIQUE NOT NULL,
+    cap_id INT(10) UNSIGNED UNIQUE NOT NULL,
+    CONSTRAINT FK_cap_id FOREIGN KEY(cap_id) REFERENCES players(id) ON UPDATE CASCADE ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
+
+
+CREATE TABLE IF NOT EXISTS teams_stats(
+    team_id INT(10) UNSIGNED PRIMARY KEY,
+    points_amount INT(10) DEFAULT 0,
+    last_week_points INT(3) DEFAULT 0,
+    games_amount INT(5) UNSIGNED DEFAULT 0,
+    effectiveness FLOAT(5, 4) DEFAULT 0,
+    CONSTRAINT FK_team_id FOREIGN KEY(team_id) REFERENCES teams(id) ON UPDATE CASCADE ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+
+CREATE TABLE IF NOT EXISTS streets(
+    id INT(10) UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(100) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
+
+
+
+CREATE TABLE IF NOT EXISTS playgrounds(
+    id INT(10) UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(50) NOT NULL,
+    street_id INT(10) UNSIGNED NOT NULL,
+    features VARCHAR(255),
+    CONSTRAINT FK_playgrounds_street_id FOREIGN KEY(street_id) REFERENCES streets(id) ON UPDATE CASCADE ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
+
+
+CREATE TABLE IF NOT EXISTS competitions(
+    id INT(10) UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+    team1_id INT(10) UNSIGNED,
+    team2_id INT(10) UNSIGNED,
+    playground_id INT(10) UNSIGNED,
+    game_date DATE,
+    absence TINYINT(1) UNSIGNED NOT NULL,
+    winner TINYINT(1) NULL DEFAULT NULL,
+    CONSTRAINT FK_playground_id FOREIGN KEY(playground_id) REFERENCES playgrounds(id) ON UPDATE CASCADE ON DELETE SET NULL,
+    CONSTRAINT FK_team1_id FOREIGN KEY(team1_id) REFERENCES teams(id) ON UPDATE CASCADE ON DELETE SET NULL,
+    CONSTRAINT FK_team2_id FOREIGN KEY(team2_id) REFERENCES teams(id) ON UPDATE CASCADE ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
+
+
+CREATE TABLE IF NOT EXISTS competitions_info( 
+    competition_id INT(10) UNSIGNED NOT NULL,
+    player_id INT(10) UNSIGNED NOT NULL,
+    skittles_amount INT(10) UNSIGNED, 
+    CONSTRAINT FK_com_player_id FOREIGN KEY(player_id) REFERENCES players(id) ON UPDATE CASCADE ON DELETE CASCADE, 
+    CONSTRAINT FK_competition_id FOREIGN KEY(competition_id) REFERENCES competitions(id) ON UPDATE CASCADE ON DELETE CASCADE, 
+    CONSTRAINT PK_competition_id_player_id PRIMARY KEY(competition_id, player_id) 
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+ALTER TABLE players ADD CONSTRAINT FK_players_team_id FOREIGN KEY(team_id) REFERENCES teams(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+ALTER TABLE players ADD CONSTRAINT FK_players_street_id FOREIGN KEY(street_id) REFERENCES streets(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+
+
+DROP TRIGGER IF EXISTS players_stats_update;
+DELIMITER //
+CREATE TRIGGER players_stats_update AFTER INSERT ON competitions_info 
+FOR EACH ROW BEGIN
+	UPDATE players_stats SET 
+    	skittles_amount = skittles_amount + NEW.skittles_amount,
+        last_week_skittles = last_week_skittles + NEW.skittles_amount,
+        games_amount = games_amount + 1,
+        effectiveness = (effectiveness + NEW.skittles_amount) / IF(`games_amount` = 1, 1, 2) WHERE player_id = NEW.player_id;
+END//
+DELIMITER ;
+
+
+-- Были автоматически созданы индексы на первичные ключи под именем PRIMARY, а также индексы cap_id и team_name для столбцов уникальных записей cap_id и team_name таблицы teams.
+
+
+CREATE OR REPLACE VIEW PlayersV AS 
+	SELECT 
+    	plt.id AS "ID",
+        plt.name AS "Имя", 
+        plt.surname AS "Фамилия", 
+        plt.phone AS "Телефон", 
+        (SELECT `name` FROM streets WHERE id = plt.street_id) AS "Улица", 
+        plt.house AS "Номер дома", 
+        IF(plt.team_id IS NOT NULL, tmt.team_name, "Не в команде") AS "Команда" 
+    FROM players AS plt LEFT OUTER JOIN teams AS tmt ON plt.team_id = tmt.id;
+
+
+CREATE OR REPLACE VIEW TeamsV AS
+	SELECT 
+        tmt.id AS "ID",
+    	tmt.team_name AS "Навание команды",
+    	CONCAT(plt.name, " ", plt.surname) AS "Капитан"
+    FROM teams AS tmt LEFT OUTER JOIN players AS plt ON tmt.cap_id = plt.id;
+
+
+CREATE OR REPLACE VIEW CompetitionsV AS
+	SELECT 
+        cmpt.id AS "ID",
+    	(SELECT tmt1.team_name FROM teams AS tmt1 WHERE tmt1.id = cmpt.team1_id) AS "Команда 1",
+        (SELECT tmt2.team_name FROM teams AS tmt2 WHERE tmt2.id = cmpt.team2_id) AS "Команда 2",
+        IF(cmpt.playground_id IS NOT NULL, 
+           IF(cmpt.playground_id != 0, 
+              (SELECT plgt.name FROM playgrounds AS plgt WHERE plgt.id = cmpt.playground_id), 
+              "Площадка не указана"), 
+           "Площадка больше  не существует") AS "Площадка",
+		cmpt.game_date AS "Дата игры",
+        IF(cmpt.absence = 0, 
+           " Команды в полном составе ",
+           IF(cmpt.absence = 1,
+              "Первая команда не в полном составе",
+              "Вторая команда не в полном составе")
+           ) AS "Командная явка",
+    IF(cmpt.winner = 1, 
+           " Первая",
+           IF(cmpt.winner = -1,
+              "Вторая",
+              "Ничья")
+           ) AS "Победитель"
+	FROM competitions AS cmpt;
+
+
+CREATE OR REPLACE VIEW PlaygroundsV AS
+	SELECT 
+    	id AS "ID",
+        name AS "Площадка",
+        (SELECT st.name FROM streets AS st WHERE st.id = street_id),
+        features AS "Особенности"
+    FROM playgrounds;
+
+
+CREATE OR REPLACE VIEW Players_statsV AS
+	SELECT 
+        plt.id AS "ID",
+        plt.name AS "Имя",
+        plt.surname AS "Фамилия",
+        (SELECT tmt.team_name FROM teams AS tmt WHERE tmt.id = plt.team_id) AS "Команда",
+        plst.skittles_amount AS "Общее число кеглей",
+        plst.last_week_skittles AS "Число кеглей за последнюю неделю",
+        plst.games_amount AS "Общее число игр",
+        plst.effectiveness AS "Эффективность"
+    FROM players AS plt INNER JOIN players_stats AS plst ON plt.id = plst.player_id;
+
+
+CREATE OR REPLACE VIEW Teams_statsV AS
+	SELECT 
+		tmt.id AS "ID",
+    	tmt.team_name AS "Команда",
+        (SELECT CONCAT(plt.name, " ", plt.surname) FROM players AS plt WHERE plt.id = tmt.cap_id) AS "Капитан",
+        tmst.points_amount AS "Общее число очков",
+        tmst.last_week_points AS "Число очков за последнюю неделю",
+        tmst.games_amount AS "Общее число игр",
+        tmst.effectiveness AS "Эффективность"
+    FROM teams AS tmt INNER JOIN teams_stats AS tmst ON tmt.id = tmst.team_id;
+
+
+CREATE OR REPLACE VIEW Competitions_infoV AS
+	SELECT 
+    	cmpt.id AS "ID",
+    	(SELECT tmt1.team_name FROM teams AS tmt1 WHERE tmt1.id = cmpt.team1_id) AS "Команда",
+        (SELECT CONCAT(plt.name, " ", plt.surname) FROM players AS plt WHERE plt.id = cmpit.player_id) AS "Игрок",
+        (SELECT tmt2.team_name FROM teams AS tmt2 WHERE tmt2.id = cmpt.team2_id) AS "Противник",
+        cmpit.skittles_amount AS "Количество кеглей", cmpt.game_date AS "Дата"
+	FROM competitions AS cmpt INNER JOIN competitions_info AS cmpit ON cmpt.id = cmpit.competition_id 
+    UNION
+    SELECT 
+    	cmpt.id AS "ID",
+    	(SELECT tmt2.team_name FROM teams AS tmt2 WHERE tmt2.id = cmpt.team2_id) AS "Команда",
+        (SELECT CONCAT(plt.name, " ", plt.surname) FROM players AS plt WHERE plt.id = cmpit.player_id) AS "Игрок",
+        (SELECT tmt1.team_name FROM teams AS tmt1 WHERE tmt1.id = cmpt.team1_id) AS "Противник",
+        cmpit.skittles_amount AS "Количество кеглей", cmpt.game_date AS "Дата"
+	FROM competitions AS cmpt INNER JOIN competitions_info AS cmpit ON cmpt.id = cmpit.competition_id;
+
+
+CREATE OR REPLACE VIEW StreetsV AS
+	SELECT id AS "ID", name AS "Улица" FROM streets;
+
+
+-- task 1
+DROP PROCEDURE IF EXISTS teams_participation;
+DELIMITER //
+CREATE PROCEDURE teams_participation(IN start_date VARCHAR(10), IN end_date VARCHAR(10)) DETERMINISTIC
+BEGIN
+	-- список выступающих команд
+	-- состав и капитан команд
+    CREATE TEMPORARY TABLE temp 
+    	SELECT DISTINCT team1_id AS "team_id", SUBSTR(game_date, 1, 10) AS "game_date" FROM competitions WHERE (
+            SUBSTR(game_date, 1, 10) <= end_date 
+            AND SUBSTR(game_date, 1, 10) >= start_date
+        ) UNION
+        SELECT DISTINCT team2_id AS "team_id", SUBSTR(game_date, 1, 10) AS "game_date" FROM competitions WHERE (
+            SUBSTR(game_date, 1, 10) <= end_date 
+            AND SUBSTR(game_date, 1, 10) >= start_date
+        );
+    SELECT 
+    	tmt.team_name AS "Команда",
+        (SELECT CONCAT(pltc.name, " ", pltc.surname) FROM players AS pltc WHERE pltc.id = tmt.cap_id) AS "Капитан",
+        (SELECT GROUP_CONCAT(CONCAT(plt.name, " ", plt.surname) SEPARATOR ",\n") FROM players AS plt WHERE
+             (plt.team_id = temp.team_id AND plt.id != tmt.cap_id)
+		) AS "Состав команды",
+        temp.game_date AS "Дата игры"
+	FROM temp INNER JOIN teams AS tmt ON temp.team_id = tmt.id;
+    DROP TEMPORARY TABLE temp;
+END//
+DELIMITER ;
+
+
+-- task 2
+-- in php scripts
+
+
+-- task 3
+CREATE OR REPLACE VIEW Playgrounds_games_amountV AS
+	SELECT 
+        plgt.id AS "ID",
+    	plgt.name AS "Площадка", plgt.features AS "Особенности",
+        (SELECT COUNT(cmpt.playground_id) FROM competitions AS cmpt WHERE cmpt.playground_id = plgt.id) AS "Сыграно игр"
+	FROM playgrounds AS plgt;
+
+
+-- task 4
+DROP PROCEDURE IF EXISTS playgrounds_usage;
+DELIMITER //
+CREATE PROCEDURE playgrounds_usage(IN start_date VARCHAR(10), IN end_date VARCHAR(10)) DETERMINISTIC
+BEGIN
+    CREATE TEMPORARY TABLE temp 
+    	SELECT DISTINCT (SELECT tmt1.team_name FROM teams AS tmt1 WHERE tmt1.id = cmpt1.team1_id) AS "team_name", cmpt1.playground_id AS "plg_id" FROM competitions AS cmpt1 WHERE (
+            SUBSTR(cmpt1.game_date, 1, 10) <= end_date 
+            AND SUBSTR(cmpt1.game_date, 1, 10) >= start_date
+        ) UNION ALL
+        SELECT DISTINCT (SELECT tmt2.team_name FROM teams AS tmt2 WHERE tmt2.id = cmpt2.team2_id) AS "team_name", cmpt2.playground_id AS "plg_id" FROM competitions AS cmpt2 WHERE (
+            SUBSTR(cmpt2.game_date, 1, 10) <= end_date 
+            AND SUBSTR(cmpt2.game_date, 1, 10) >= start_date
+        );
+        
+    SELECT 
+    	(SELECT plgt.name FROM playgrounds AS plgt WHERE plgt.id = plgtmp.plg_id) AS "Площадка",
+        (SELECT GROUP_CONCAT(DISTINCT temp.team_name SEPARATOR ",\n") FROM temp WHERE temp.plg_id = plgtmp.plg_id) AS "Игравшие команды",
+        plgtmp.game_date AS "Дата игры"
+	FROM (SELECT DISTINCT cmpt.playground_id AS "plg_id", SUBSTR(cmpt.game_date, 1, 10) AS "game_date" FROM competitions AS cmpt WHERE (
+            SUBSTR(cmpt.game_date, 1, 10) <= end_date 
+            AND SUBSTR(cmpt.game_date, 1, 10) >= start_date
+        )) AS plgtmp;
+        
+    DROP TEMPORARY TABLE temp;
+END//
+DELIMITER ;
+
+-- task 5
+-- in php scripts
+
+
+
+-- task 6
+-- Не на всех площадках, хранящихся в БД, могли быть сыграны игры
+-- Используется процедура, поскольку представление не поддерживает запрос SELECT после FROM 
+DROP PROCEDURE IF EXISTS playgrounds_efficiency;
+DELIMITER //
+CREATE PROCEDURE playgrounds_efficiency() DETERMINISTIC
+BEGIN
+    SELECT 
+    	(SELECT plgt.name FROM playgrounds AS plgt WHERE plgt.id = plgtmp.plg_id) AS "Площадка",
+        ROUND(
+            (
+                SELECT SUM(cmpit.skittles_amount) / COUNT(cmpit.competition_id) 
+                	FROM competitions AS cmpt INNER JOIN competitions_info AS cmpit ON 
+                	cmpt.id = cmpit.competition_id WHERE cmpt.playground_id = plgtmp.plg_id),
+            4) AS "Эффективность"
+	FROM (SELECT DISTINCT playground_id AS "plg_id" FROM competitions) AS plgtmp;
+END//
+DELIMITER ;
+
+
+
+
+
+INSERT INTO `streets`(`name`) VALUES ("First J");
+INSERT INTO `streets`(`name`) VALUES ("Beside");
+INSERT INTO `streets`(`name`) VALUES ("Third Str");
+INSERT INTO `streets`(`name`) VALUES ("Wall Street");
+INSERT INTO `streets`(`name`) VALUES ("Somebody Street");
+
+
+INSERT INTO `players`(`name`, `surname`, `phone`, `street_id`, `house`) VALUES ("John", "Smith", 12345678912, 1, 14);
+INSERT INTO `players`(`name`, `surname`, `phone`, `street_id`, `house`) VALUES ("Samantha", "Smith", 45612378945, 1, 14);
+INSERT INTO `players`(`name`, `surname`, `phone`, `street_id`, `house`) VALUES ("Anthony", "Smith", 47537864512, 1, 14);
+INSERT INTO `players`(`name`, `surname`, `phone`, `street_id`, `house`) VALUES ("Violet", "Smith", 45621345678, 1, 14);
+INSERT INTO `players`(`name`, `surname`, `phone`, `street_id`, `house`) VALUES ("Miguel", "Berkley", 45612345612, 1, 29);
+INSERT INTO `players`(`name`, `surname`, `phone`, `street_id`, `house`) VALUES ("Ebigail", "Berkley", 12315612345, 1, 29);
+INSERT INTO `players`(`name`, `surname`, `phone`, `street_id`, `house`) VALUES ("Another", "Berkley", 78945678954, 2, 35);
+INSERT INTO `players`(`name`, `surname`, `phone`, `street_id`, `house`) VALUES ("More", "Berkley", 23112332145, 2, 35);
+INSERT INTO `players`(`name`, `surname`, `phone`, `street_id`, `house`) VALUES ("Christofer", "Linear", 648315311512, 3, 1);
+INSERT INTO `players`(`name`, `surname`, `phone`, `street_id`, `house`) VALUES ("Emma", "Linear", 15348648615, 3, 1);
+INSERT INTO `players`(`name`, `surname`, `phone`, `street_id`, `house`) VALUES ("Bekony", "Fractal", 42675975342, 2, 14);
+INSERT INTO `players`(`name`, `surname`, `phone`, `street_id`, `house`) VALUES ("Eric", "Fractal", 64561234512, 2, 14);
+INSERT INTO `players`(`name`, `surname`, `phone`, `street_id`, `house`) VALUES ("Anthony", "Brown", 6548983647, 3, 1);
+
+INSERT INTO `teams`(`team_name`, `cap_id`) VALUES ("Team Smith", 1);
+INSERT INTO `teams`(`team_name`, `cap_id`) VALUES ("Infamous t", 7);
+INSERT INTO `teams`(`team_name`, `cap_id`) VALUES ("4ever", 9);
+
+UPDATE `players` SET `team_id`=1 WHERE `surname`="Smith";
+UPDATE `players` SET `team_id`=2 WHERE `surname`="Berkley";
+UPDATE `players` SET `team_id`=3 WHERE (`surname`="Linear" OR `surname`="Fractal");
+
+INSERT INTO `teams_stats`(`team_id`) VALUES (1);
+INSERT INTO `teams_stats`(`team_id`) VALUES (2);
+INSERT INTO `teams_stats`(`team_id`) VALUES (3);
+
+INSERT INTO `players_stats`(`player_id`) VALUES (1);
+INSERT INTO `players_stats`(`player_id`) VALUES (2);
+INSERT INTO `players_stats`(`player_id`) VALUES (3);
+INSERT INTO `players_stats`(`player_id`) VALUES (4);
+INSERT INTO `players_stats`(`player_id`) VALUES (5);
+INSERT INTO `players_stats`(`player_id`) VALUES (6);
+INSERT INTO `players_stats`(`player_id`) VALUES (7);
+INSERT INTO `players_stats`(`player_id`) VALUES (8);
+INSERT INTO `players_stats`(`player_id`) VALUES (9);
+INSERT INTO `players_stats`(`player_id`) VALUES (10);
+INSERT INTO `players_stats`(`player_id`) VALUES (11);
+INSERT INTO `players_stats`(`player_id`) VALUES (12);
+INSERT INTO `players_stats`(`player_id`) VALUES (13);
+
+INSERT INTO `playgrounds`(`name`, `features`, `street_id`) VALUES ("Underground playground", "", 1);
+INSERT INTO `playgrounds`(`name`, `features`, `street_id`) VALUES ("Summer outside playground", "", 2);
+INSERT INTO `playgrounds`(`name`, `features`, `street_id`) VALUES ("Night club playground", "", 3);
+INSERT INTO `playgrounds`(`name`, `features`, `street_id`) VALUES ("Street playground", "", 4);
+
+INSERT INTO `competitions`(`team1_id`, `team2_id`, `playground_id`,`absence`) VALUES (1, 2, 4, 0);
+INSERT INTO `competitions`(`team1_id`, `team2_id`, `playground_id`,`absence`) VALUES (1, 3, 2, 0);
+INSERT INTO `competitions`(`team1_id`, `team2_id`, `playground_id`,`absence`) VALUES (2, 3, 1, 1);
+INSERT INTO `competitions`(`team1_id`, `team2_id`, `playground_id`,`absence`) VALUES (1, 2, 3, 2);
+INSERT INTO `competitions`(`team1_id`, `team2_id`, `playground_id`,`absence`) VALUES (3, 1, 1, 0);
+
+

@@ -22,6 +22,7 @@
     <div style="display: flex; flex-wrap: wrap; flex-direction: column; margin: 0 auto">
         <div style="padding-top: 200px; max-width: 600px; min-width: 400px; font-family: 'Lora', sans-serif; font-size: 22px; font-style: normal; color: indianred"
         ">
+        <p><output><?php echo $_SESSION['qerr']; ?></output></p>
         <p><output><?php echo "Возникала ошибка $_SESSION[errno]: $_SESSION[error]"; ?></output></p>
         <p><output>Пожалуйста, повторите ваш запрос</output></p>
         <p><output>Если ошибка не пропадает, возможно, у Вас отсутствует подключение к БД или она не работает</output></p>

@@ -16,7 +16,8 @@
             <caption>Игральные площадки</caption>
             <tr>
                 <th>Название</th>
-                <th style='width: 75%'>Описание, особенности</th>
+                <th style='min-width: 120px'>Улица</th>
+                <th style='max-width: 800px; min-width: 400px'>Описание, особенности</th>
                 <th></th>
                 <th></th>
             </tr>
@@ -24,11 +25,11 @@
             $query = 'SELECT * FROM PlaygroundsV';
             $stmt = $conn->stmt_init();
             if ($stmt->prepare($query) && $stmt->execute()) {
-                $stmt->bind_result($id, $name, $features);
+                $stmt->bind_result($id, $name, $street, $features);
 
                 while ($stmt->fetch()) {
                     if ($features == '') $features = 'Нет данных';
-                    echo "<tr><td>$name</td><td >$features</td><td class='edit-btn'><form method='POST' action='/IndZ/actions/playground.php'><button type='submit' name='edit' value=$id><img src='/IndZ/images/settings.svg' alt='Изменить'/></button></form></td><td class='edit-btn'><form method='POST' action='/IndZ/helpers/delete.php'><button type='submit' name='delete' value=\"" . $id . ' playgrounds"' . "><img src='/IndZ/images/delete.svg' alt='Удалить'/></button></form></td></tr>";
+                    echo "<tr><td>$name</td><td>$street</td><td>$features</td><td class='edit-btn'><form method='POST' action='/IndZ/actions/playground.php'><button type='submit' name='edit' value=$id><img src='/IndZ/images/settings.svg' alt='Изменить'/></button></form></td><td class='edit-btn'><form method='POST' action='/IndZ/helpers/delete.php'><button type='submit' name='delete' value=\"" . $id . ' playgrounds"' . "><img src='/IndZ/images/delete.svg' alt='Удалить'/></button></form></td></tr>";
                 }
 
                 $stmt->free_result();
