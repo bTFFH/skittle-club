@@ -30,7 +30,6 @@
                     </form>
                     <?php
                 }
-                $stmt->close();
             } else {
                 $query = 'UPDATE `playgrounds` SET `name` = ?, `features` = ? WHERE `id` = ?';
                 if ($stmt->prepare($query)
