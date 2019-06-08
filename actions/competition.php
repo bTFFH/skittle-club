@@ -144,8 +144,14 @@
 
             // так как команда не может победить, если присутствовали не все игроки, то если обе команды были
             // не в полном составе, то должна быть ничья не смотря на победу одной команды по очкам
-            if ($lossUpd1) $points1 = 0;
-            if ($lossUpd2) $points2 = 0;
+            if ($lossUpd1) {
+                $points1 = 0;
+                $winner = -1;
+            }
+            if ($lossUpd2) {
+                $points2 = 0;
+                $winner = $lossUpd1 ? 0 : 1;
+            }
 
             $query = 'UPDATE `teams_stats` SET `points_amount` = `points_amount` + ?, `last_week_points` = `last_week_points` + ?, `games_amount` = `games_amount` + 1, `effectiveness` = `points_amount` / IF(`games_amount` = 1, 1, 2) WHERE `team_id` = ?';
 
@@ -286,7 +292,8 @@
                         ?>
                         <div style="color: indianred;">
                             <p><output>В базе данных отсутствуют игры</output></p>
-                            <p><output>Для добавления статистики игры, пожалуйста, добавьте новую игру</output></p>
+                            <p><output>Для добавления статистики игры, пожалуйста, добавьте новую игру во
+                                    вкладке <output style="color: darkcyan">Добавить -> Игра</output></output></p>
                         </div>
                         <?php
                     } else {

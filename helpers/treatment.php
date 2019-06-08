@@ -15,7 +15,7 @@ function treat($str) {
 }
 
 function cryptPass($pass) {
-    $salt = random_bytes(15);
+    $salt = (string)random_bytes(15);
     $pass = crypt($pass, $salt);
     $pass = substr($pass, 0, 32);
     return array($salt, $pass);

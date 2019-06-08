@@ -1,4 +1,11 @@
-Required server directory name: IndZ
+Already existing user (login/password) - tester/test123
+You can always create a new user (btw, password adam123 never works, dont really know why)
+
+!!!ATTENTION!!!
+
+While import or create database (copy of skittle_club.sql) it should be named as "skittle_club" or change it in root/helpers/dbConnOpen.php with other settings
+Required site directory name: IndZ (or change almost in all files c:)
+
 
 Directories:
 	actions

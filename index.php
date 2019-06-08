@@ -22,7 +22,6 @@
         <?php
         if (isset($_GET['err'])) {
             echo "<p><output style='padding-left: 15px;'>Неверное имя пользователя или пароль</output></p>";
-//            if ($_GET['err'] == 'p') echo "passtruoubles";
         }
     } else {
         require_once($_SERVER['DOCUMENT_ROOT'] . "/IndZ/helpers/treatment.php");
@@ -39,7 +38,6 @@
                 $stmt->free_result();
                 $stmt->close();
                 include_once($_SERVER['DOCUMENT_ROOT'] . "/IndZ/helpers/dbConnClose.php");
-                echo "<input name='err' value='t' hidden />";
                 header("Location: index.php?err=t", true);
             } else {
                 $stmt->fetch();
