@@ -1,0 +1,751 @@
+-- phpMyAdmin SQL Dump
+-- version 4.8.3
+-- https://www.phpmyadmin.net/
+--
+-- Хост: 127.0.0.1
+-- Время создания: Июн 08 2019 г., 22:10
+-- Версия сервера: 10.1.36-MariaDB
+-- Версия PHP: 7.2.10
+
+SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+SET AUTOCOMMIT = 0;
+START TRANSACTION;
+SET time_zone = "+00:00";
+
+--
+-- База данных: `skittle_club`
+--
+
+DELIMITER $$
+--
+-- Процедуры
+--
+CREATE DEFINER=`root`@`localhost` PROCEDURE `playgrounds_efficiency` ()  BEGIN
+    SELECT 
+    	(SELECT plgt.name FROM playgrounds AS plgt WHERE plgt.id = plgtmp.plg_id) AS "Площадка",
+        ROUND(
+            (
+                SELECT SUM(cmpit.skittles_amount) / COUNT(cmpit.competition_id) 
+                	FROM competitions AS cmpt INNER JOIN competitions_info AS cmpit ON 
+                	cmpt.id = cmpit.competition_id WHERE cmpt.playground_id = plgtmp.plg_id),
+            4) AS "Эффективность"
+	FROM (SELECT DISTINCT playground_id AS "plg_id" FROM competitions) AS plgtmp;
+END$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `playgrounds_usage` (IN `start_date` VARCHAR(10), IN `end_date` VARCHAR(10))  BEGIN
+    CREATE TEMPORARY TABLE temp 
+    	SELECT DISTINCT (SELECT tmt1.team_name FROM teams AS tmt1 WHERE tmt1.id = cmpt1.team1_id) AS "team_name", cmpt1.playground_id AS "plg_id" FROM competitions AS cmpt1 WHERE (
+            SUBSTR(cmpt1.game_date, 1, 10) <= end_date 
+            AND SUBSTR(cmpt1.game_date, 1, 10) >= start_date
+        ) UNION ALL
+        SELECT DISTINCT (SELECT tmt2.team_name FROM teams AS tmt2 WHERE tmt2.id = cmpt2.team2_id) AS "team_name", cmpt2.playground_id AS "plg_id" FROM competitions AS cmpt2 WHERE (
+            SUBSTR(cmpt2.game_date, 1, 10) <= end_date 
+            AND SUBSTR(cmpt2.game_date, 1, 10) >= start_date
+        );
+        
+    SELECT 
+    	(SELECT plgt.name FROM playgrounds AS plgt WHERE plgt.id = plgtmp.plg_id) AS "Площадка",
+        (SELECT GROUP_CONCAT(DISTINCT temp.team_name SEPARATOR ",\n") FROM temp WHERE temp.plg_id = plgtmp.plg_id) AS "Игравшие команды",
+        plgtmp.game_date AS "Дата игры"
+	FROM (SELECT DISTINCT cmpt.playground_id AS "plg_id", SUBSTR(cmpt.game_date, 1, 10) AS "game_date" FROM competitions AS cmpt WHERE (
+            SUBSTR(cmpt.game_date, 1, 10) <= end_date 
+            AND SUBSTR(cmpt.game_date, 1, 10) >= start_date
+        )) AS plgtmp;
+        
+    DROP TEMPORARY TABLE temp;
+END$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `teams_participation` (IN `start_date` VARCHAR(10), IN `end_date` VARCHAR(10))  BEGIN
+	-- список выступающих команд
+	-- состав и капитан команд
+    CREATE TEMPORARY TABLE temp 
+    	SELECT DISTINCT team1_id AS "team_id", SUBSTR(game_date, 1, 10) AS "game_date" FROM competitions WHERE (
+            SUBSTR(game_date, 1, 10) <= end_date 
+            AND SUBSTR(game_date, 1, 10) >= start_date
+        ) UNION
+        SELECT DISTINCT team2_id AS "team_id", SUBSTR(game_date, 1, 10) AS "game_date" FROM competitions WHERE (
+            SUBSTR(game_date, 1, 10) <= end_date 
+            AND SUBSTR(game_date, 1, 10) >= start_date
+        );
+    SELECT 
+    	tmt.team_name AS "Команда",
+        (SELECT CONCAT(pltc.name, " ", pltc.surname) FROM players AS pltc WHERE pltc.id = tmt.cap_id) AS "Капитан",
+        (SELECT GROUP_CONCAT(CONCAT(plt.name, " ", plt.surname) SEPARATOR ",\n") FROM players AS plt WHERE
+             (plt.team_id = temp.team_id AND plt.id != tmt.cap_id)
+		) AS "Состав команды",
+        temp.game_date AS "Дата игры"
+	FROM temp INNER JOIN teams AS tmt ON temp.team_id = tmt.id;
+    DROP TEMPORARY TABLE temp;
+END$$
+
+DELIMITER ;
+
+-- --------------------------------------------------------
+
+--
+-- Структура таблицы `competitions`
+--
+
+CREATE TABLE `competitions` (
+  `id` int(10) UNSIGNED NOT NULL,
+  `team1_id` int(10) UNSIGNED DEFAULT NULL,
+  `team2_id` int(10) UNSIGNED DEFAULT NULL,
+  `playground_id` int(10) UNSIGNED DEFAULT NULL,
+  `game_date` date DEFAULT NULL,
+  `absence` tinyint(1) UNSIGNED NOT NULL,
+  `winner` tinyint(1) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- Дамп данных таблицы `competitions`
+--
+
+INSERT INTO `competitions` (`id`, `team1_id`, `team2_id`, `playground_id`, `game_date`, `absence`, `winner`) VALUES
+(1, 1, 2, 4, '2019-05-26', 0, -1),
+(2, 1, 3, 2, '2019-05-30', 0, 1),
+(3, 2, 3, 1, '2019-05-31', 1, -1),
+(4, 1, 2, 3, '2019-05-31', 2, 1),
+(5, 3, 1, 1, '2019-05-31', 0, -1),
+(6, 3, 1, 6, '2019-06-06', 2, 1);
+
+-- --------------------------------------------------------
+
+--
+-- Дублирующая структура для представления `competitionsv`
+-- (См. Ниже фактическое представление)
+--
+CREATE TABLE `competitionsv` (
+`ID` int(10) unsigned
+,`Команда 1` varchar(50)
+,`Команда 2` varchar(50)
+,`Площадка` varchar(50)
+,`Дата игры` date
+,`Командная явка` varchar(34)
+,`Победитель` varchar(7)
+);
+
+-- --------------------------------------------------------
+
+--
+-- Структура таблицы `competitions_info`
+--
+
+CREATE TABLE `competitions_info` (
+  `competition_id` int(10) UNSIGNED NOT NULL,
+  `player_id` int(10) UNSIGNED NOT NULL,
+  `skittles_amount` int(10) UNSIGNED DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- Дамп данных таблицы `competitions_info`
+--
+
+INSERT INTO `competitions_info` (`competition_id`, `player_id`, `skittles_amount`) VALUES
+(1, 1, 1),
+(1, 2, 2),
+(1, 3, 3),
+(1, 4, 4),
+(1, 5, 5),
+(1, 6, 1),
+(1, 7, 2),
+(1, 8, 3),
+(1, 14, 4),
+(1, 15, 5),
+(2, 1, 3),
+(2, 2, 4),
+(2, 3, 5),
+(2, 4, 9),
+(2, 9, 1),
+(2, 10, 4),
+(2, 11, 3),
+(2, 12, 3),
+(2, 18, 4),
+(3, 5, 7),
+(3, 6, 7),
+(3, 7, 7),
+(3, 8, 4),
+(3, 9, 9),
+(3, 10, 9),
+(3, 11, 9),
+(3, 12, 9),
+(3, 14, 3),
+(3, 15, 4),
+(3, 18, 5),
+(4, 1, 3),
+(4, 2, 5),
+(4, 3, 4),
+(4, 4, 3),
+(4, 5, 9),
+(4, 6, 9),
+(4, 7, 9),
+(4, 14, 9),
+(4, 15, 9),
+(5, 1, 4),
+(5, 2, 5),
+(5, 3, 4),
+(5, 4, 3),
+(5, 9, 5),
+(5, 10, 1),
+(5, 11, 3),
+(5, 12, 4),
+(5, 18, 2),
+(6, 1, 9),
+(6, 2, 9),
+(6, 3, 9),
+(6, 9, 5),
+(6, 10, 5),
+(6, 11, 5),
+(6, 12, 1),
+(6, 18, 3);
+
+--
+-- Триггеры `competitions_info`
+--
+DELIMITER $$
+CREATE TRIGGER `players_stats_update` AFTER INSERT ON `competitions_info` FOR EACH ROW BEGIN
+	UPDATE players_stats SET 
+    	skittles_amount = skittles_amount + NEW.skittles_amount,
+        last_week_skittles = last_week_skittles + NEW.skittles_amount,
+        games_amount = games_amount + 1,
+        effectiveness = (effectiveness + NEW.skittles_amount) / IF(`games_amount` = 1, 1, 2) WHERE player_id = NEW.player_id;
+END
+$$
+DELIMITER ;
+
+-- --------------------------------------------------------
+
+--
+-- Дублирующая структура для представления `competitions_infov`
+-- (См. Ниже фактическое представление)
+--
+CREATE TABLE `competitions_infov` (
+`ID` int(11) unsigned
+,`Команда` varchar(50)
+,`Игрок` varchar(151)
+,`Противник` varchar(50)
+,`Количество кеглей` int(11) unsigned
+,`Дата` date
+);
+
+-- --------------------------------------------------------
+
+--
+-- Структура таблицы `players`
+--
+
+CREATE TABLE `players` (
+  `id` int(10) UNSIGNED NOT NULL,
+  `name` varchar(50) NOT NULL,
+  `surname` varchar(100) NOT NULL,
+  `phone` bigint(11) UNSIGNED NOT NULL,
+  `street_id` int(10) UNSIGNED NOT NULL,
+  `house` tinyint(3) UNSIGNED NOT NULL,
+  `team_id` int(10) UNSIGNED DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- Дамп данных таблицы `players`
+--
+
+INSERT INTO `players` (`id`, `name`, `surname`, `phone`, `street_id`, `house`, `team_id`) VALUES
+(1, 'John', 'Smith', 12345678912, 1, 14, 1),
+(2, 'Samantha', 'Smith', 45612378945, 1, 14, 1),
+(3, 'Anthony', 'Smith', 47537864512, 1, 14, 1),
+(4, 'Violet', 'Smith', 45621345678, 1, 14, 1),
+(5, 'Miguel', 'Berkley', 45612345612, 1, 29, 2),
+(6, 'Ebigail', 'Berkley', 12315612345, 1, 29, 2),
+(7, 'Another', 'Berkley', 78945678954, 2, 35, 2),
+(8, 'More', 'Berkley', 23112332145, 2, 35, 2),
+(9, 'Christofer', 'Linear', 648315311512, 3, 1, 3),
+(10, 'Emma', 'Linear', 15348648615, 3, 1, 3),
+(11, 'Bekony', 'Fractal', 42675975342, 2, 14, 3),
+(12, 'Eric', 'Fractal', 64561234512, 2, 14, 3),
+(13, 'Anthony', 'Brown', 6548983647, 3, 1, 4),
+(14, 'Adam', 'Beginner', 54314321464, 5, 14, 2),
+(15, 'Maden', 'Beginner', 45735623453, 5, 14, 2),
+(16, 'Patric', 'Birningham', 48351654324, 4, 25, 4),
+(17, 'Patricia', 'Birningham', 79854652132, 4, 25, 4),
+(18, 'Test', 'Hero', 91534383154, 4, 14, 4);
+
+-- --------------------------------------------------------
+
+--
+-- Дублирующая структура для представления `playersv`
+-- (См. Ниже фактическое представление)
+--
+CREATE TABLE `playersv` (
+`ID` int(10) unsigned
+,`Имя` varchar(50)
+,`Фамилия` varchar(100)
+,`Телефон` bigint(11) unsigned
+,`Улица` varchar(100)
+,`Номер дома` tinyint(3) unsigned
+,`Команда` varchar(50)
+);
+
+-- --------------------------------------------------------
+
+--
+-- Структура таблицы `players_stats`
+--
+
+CREATE TABLE `players_stats` (
+  `player_id` int(10) UNSIGNED NOT NULL,
+  `skittles_amount` int(10) UNSIGNED DEFAULT '0',
+  `last_week_skittles` int(3) UNSIGNED DEFAULT '0',
+  `games_amount` int(5) UNSIGNED DEFAULT '0',
+  `effectiveness` float(5,4) UNSIGNED DEFAULT '0.0000'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- Дамп данных таблицы `players_stats`
+--
+
+INSERT INTO `players_stats` (`player_id`, `skittles_amount`, `last_week_skittles`, `games_amount`, `effectiveness`) VALUES
+(1, 20, 20, 5, 6.1250),
+(2, 25, 25, 5, 6.7500),
+(3, 25, 25, 5, 6.5000),
+(4, 19, 19, 4, 3.8750),
+(5, 21, 21, 3, 7.5000),
+(6, 17, 17, 3, 6.5000),
+(7, 18, 18, 3, 6.7500),
+(8, 7, 7, 2, 3.5000),
+(9, 20, 20, 4, 5.0000),
+(10, 19, 19, 4, 4.3750),
+(11, 20, 20, 4, 4.7500),
+(12, 17, 17, 4, 3.0000),
+(13, 0, 0, 0, 0.0000),
+(14, 16, 16, 3, 6.2500),
+(15, 18, 18, 3, 6.7500),
+(16, 0, 0, 0, 0.0000),
+(17, 0, 0, 0, 0.0000),
+(18, 14, 14, 4, 3.1250);
+
+-- --------------------------------------------------------
+
+--
+-- Дублирующая структура для представления `players_statsv`
+-- (См. Ниже фактическое представление)
+--
+CREATE TABLE `players_statsv` (
+`ID` int(10) unsigned
+,`Имя` varchar(50)
+,`Фамилия` varchar(100)
+,`Команда` varchar(50)
+,`Общее число кеглей` int(10) unsigned
+,`Число кеглей за последнюю неделю` int(3) unsigned
+,`Общее число игр` int(5) unsigned
+,`Эффективность` float(5,4) unsigned
+);
+
+-- --------------------------------------------------------
+
+--
+-- Структура таблицы `playgrounds`
+--
+
+CREATE TABLE `playgrounds` (
+  `id` int(10) UNSIGNED NOT NULL,
+  `name` varchar(50) NOT NULL,
+  `street_id` int(10) UNSIGNED NOT NULL,
+  `features` varchar(255) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- Дамп данных таблицы `playgrounds`
+--
+
+INSERT INTO `playgrounds` (`id`, `name`, `street_id`, `features`) VALUES
+(1, 'Underground playground', 1, 'Ambience of the UK underground'),
+(2, 'Summer outside playground', 2, 'When We came here in the summer/\r\nTo our heartbeat sound/\r\nWe fell in love/\r\nAs the leaves turned brown'),
+(3, 'Night club playground', 3, 'Night is a fantastic moment when some infamous things can happen'),
+(4, 'Street playground', 4, ''),
+(5, '20th Sentury Fox', 4, 'Everybody love foxes, aren\'t they?'),
+(6, 'Johny Ive\'s Beer bar', 5, 'This playgrounds is known to be the hardest to win these days');
+
+-- --------------------------------------------------------
+
+--
+-- Дублирующая структура для представления `playgroundsv`
+-- (См. Ниже фактическое представление)
+--
+CREATE TABLE `playgroundsv` (
+`ID` int(10) unsigned
+,`Площадка` varchar(50)
+,`(SELECT st.name FROM streets AS st WHERE st.id = street_id)` varchar(100)
+,`Особенности` varchar(255)
+);
+
+-- --------------------------------------------------------
+
+--
+-- Дублирующая структура для представления `playgrounds_games_amountv`
+-- (См. Ниже фактическое представление)
+--
+CREATE TABLE `playgrounds_games_amountv` (
+`ID` int(10) unsigned
+,`Площадка` varchar(50)
+,`Особенности` varchar(255)
+,`Сыграно игр` bigint(21)
+);
+
+-- --------------------------------------------------------
+
+--
+-- Структура таблицы `streets`
+--
+
+CREATE TABLE `streets` (
+  `id` int(10) UNSIGNED NOT NULL,
+  `name` varchar(100) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- Дамп данных таблицы `streets`
+--
+
+INSERT INTO `streets` (`id`, `name`) VALUES
+(1, 'First J'),
+(2, 'Beside'),
+(3, 'Third Str'),
+(4, 'Wall Street'),
+(5, 'Somebody Street');
+
+-- --------------------------------------------------------
+
+--
+-- Дублирующая структура для представления `streetsv`
+-- (См. Ниже фактическое представление)
+--
+CREATE TABLE `streetsv` (
+`ID` int(10) unsigned
+,`Улица` varchar(100)
+);
+
+-- --------------------------------------------------------
+
+--
+-- Структура таблицы `teams`
+--
+
+CREATE TABLE `teams` (
+  `id` int(10) UNSIGNED NOT NULL,
+  `team_name` varchar(50) NOT NULL,
+  `cap_id` int(10) UNSIGNED NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- Дамп данных таблицы `teams`
+--
+
+INSERT INTO `teams` (`id`, `team_name`, `cap_id`) VALUES
+(1, 'Team Smith', 1),
+(2, 'Infamous t', 7),
+(3, '4ever', 9),
+(4, 'Team of the century', 13);
+
+-- --------------------------------------------------------
+
+--
+-- Дублирующая структура для представления `teamsv`
+-- (См. Ниже фактическое представление)
+--
+CREATE TABLE `teamsv` (
+`ID` int(10) unsigned
+,`Навание команды` varchar(50)
+,`Капитан` varchar(151)
+);
+
+-- --------------------------------------------------------
+
+--
+-- Структура таблицы `teams_stats`
+--
+
+CREATE TABLE `teams_stats` (
+  `team_id` int(10) UNSIGNED NOT NULL,
+  `points_amount` int(10) DEFAULT '0',
+  `last_week_points` int(3) DEFAULT '0',
+  `games_amount` int(5) UNSIGNED DEFAULT '0',
+  `effectiveness` float(5,4) DEFAULT '0.0000'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- Дамп данных таблицы `teams_stats`
+--
+
+INSERT INTO `teams_stats` (`team_id`, `points_amount`, `last_week_points`, `games_amount`, `effectiveness`) VALUES
+(1, 0, 0, 8, 0.0000),
+(2, 0, 0, 6, 0.0000),
+(3, -2, -2, 4, -1.0000),
+(4, 0, 0, 0, 0.0000);
+
+-- --------------------------------------------------------
+
+--
+-- Дублирующая структура для представления `teams_statsv`
+-- (См. Ниже фактическое представление)
+--
+CREATE TABLE `teams_statsv` (
+`ID` int(10) unsigned
+,`Команда` varchar(50)
+,`Капитан` varchar(151)
+,`Общее число очков` int(10)
+,`Число очков за последнюю неделю` int(3)
+,`Общее число игр` int(5) unsigned
+,`Эффективность` float(5,4)
+);
+
+-- --------------------------------------------------------
+
+--
+-- Структура таблицы `users`
+--
+
+CREATE TABLE `users` (
+  `username` varchar(10) NOT NULL,
+  `name` varchar(50) NOT NULL,
+  `surname` varchar(60) NOT NULL,
+  `passwd` varchar(32) NOT NULL,
+  `salt` varchar(30) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- Дамп данных таблицы `users`
+--
+
+INSERT INTO `users` (`username`, `name`, `surname`, `passwd`, `salt`) VALUES
+('tester', 'Test', 'Hero', '\"Kh.r0r8xZlJQ', '\"K??g??p?\0}?\r');
+
+-- --------------------------------------------------------
+
+--
+-- Структура для представления `competitionsv`
+--
+DROP TABLE IF EXISTS `competitionsv`;
+
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `competitionsv`  AS  select `cmpt`.`id` AS `ID`,(select `tmt1`.`team_name` from `teams` `tmt1` where (`tmt1`.`id` = `cmpt`.`team1_id`)) AS `Команда 1`,(select `tmt2`.`team_name` from `teams` `tmt2` where (`tmt2`.`id` = `cmpt`.`team2_id`)) AS `Команда 2`,if((`cmpt`.`playground_id` is not null),if((`cmpt`.`playground_id` <> 0),(select `plgt`.`name` from `playgrounds` `plgt` where (`plgt`.`id` = `cmpt`.`playground_id`)),'Площадка не указана'),'Площадка больше  не существует') AS `Площадка`,`cmpt`.`game_date` AS `Дата игры`,if((`cmpt`.`absence` = 0),' Команды в полном составе ',if((`cmpt`.`absence` = 1),'Первая команда не в полном составе','Вторая команда не в полном составе')) AS `Командная явка`,if((`cmpt`.`winner` = 1),' Первая',if((`cmpt`.`winner` = -(1)),'Вторая','Ничья')) AS `Победитель` from `competitions` `cmpt` ;
+
+-- --------------------------------------------------------
+
+--
+-- Структура для представления `competitions_infov`
+--
+DROP TABLE IF EXISTS `competitions_infov`;
+
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `competitions_infov`  AS  select `cmpt`.`id` AS `ID`,(select `tmt1`.`team_name` from `teams` `tmt1` where (`tmt1`.`id` = `cmpt`.`team1_id`)) AS `Команда`,(select concat(`plt`.`name`,' ',`plt`.`surname`) from `players` `plt` where (`plt`.`id` = `cmpit`.`player_id`)) AS `Игрок`,(select `tmt2`.`team_name` from `teams` `tmt2` where (`tmt2`.`id` = `cmpt`.`team2_id`)) AS `Противник`,`cmpit`.`skittles_amount` AS `Количество кеглей`,`cmpt`.`game_date` AS `Дата` from (`competitions` `cmpt` join `competitions_info` `cmpit` on((`cmpt`.`id` = `cmpit`.`competition_id`))) union select `cmpt`.`id` AS `ID`,(select `tmt2`.`team_name` from `teams` `tmt2` where (`tmt2`.`id` = `cmpt`.`team2_id`)) AS `Команда`,(select concat(`plt`.`name`,' ',`plt`.`surname`) from `players` `plt` where (`plt`.`id` = `cmpit`.`player_id`)) AS `Игрок`,(select `tmt1`.`team_name` from `teams` `tmt1` where (`tmt1`.`id` = `cmpt`.`team1_id`)) AS `Противник`,`cmpit`.`skittles_amount` AS `Количество кеглей`,`cmpt`.`game_date` AS `Дата` from (`competitions` `cmpt` join `competitions_info` `cmpit` on((`cmpt`.`id` = `cmpit`.`competition_id`))) ;
+
+-- --------------------------------------------------------
+
+--
+-- Структура для представления `playersv`
+--
+DROP TABLE IF EXISTS `playersv`;
+
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `playersv`  AS  select `plt`.`id` AS `ID`,`plt`.`name` AS `Имя`,`plt`.`surname` AS `Фамилия`,`plt`.`phone` AS `Телефон`,(select `streets`.`name` from `streets` where (`streets`.`id` = `plt`.`street_id`)) AS `Улица`,`plt`.`house` AS `Номер дома`,if((`plt`.`team_id` is not null),`tmt`.`team_name`,'Не в команде') AS `Команда` from (`players` `plt` left join `teams` `tmt` on((`plt`.`team_id` = `tmt`.`id`))) ;
+
+-- --------------------------------------------------------
+
+--
+-- Структура для представления `players_statsv`
+--
+DROP TABLE IF EXISTS `players_statsv`;
+
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `players_statsv`  AS  select `plt`.`id` AS `ID`,`plt`.`name` AS `Имя`,`plt`.`surname` AS `Фамилия`,(select `tmt`.`team_name` from `teams` `tmt` where (`tmt`.`id` = `plt`.`team_id`)) AS `Команда`,`plst`.`skittles_amount` AS `Общее число кеглей`,`plst`.`last_week_skittles` AS `Число кеглей за последнюю неделю`,`plst`.`games_amount` AS `Общее число игр`,`plst`.`effectiveness` AS `Эффективность` from (`players` `plt` join `players_stats` `plst` on((`plt`.`id` = `plst`.`player_id`))) ;
+
+-- --------------------------------------------------------
+
+--
+-- Структура для представления `playgroundsv`
+--
+DROP TABLE IF EXISTS `playgroundsv`;
+
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `playgroundsv`  AS  select `playgrounds`.`id` AS `ID`,`playgrounds`.`name` AS `Площадка`,(select `st`.`name` from `streets` `st` where (`st`.`id` = `playgrounds`.`street_id`)) AS `(SELECT st.name FROM streets AS st WHERE st.id = street_id)`,`playgrounds`.`features` AS `Особенности` from `playgrounds` ;
+
+-- --------------------------------------------------------
+
+--
+-- Структура для представления `playgrounds_games_amountv`
+--
+DROP TABLE IF EXISTS `playgrounds_games_amountv`;
+
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `playgrounds_games_amountv`  AS  select `plgt`.`id` AS `ID`,`plgt`.`name` AS `Площадка`,`plgt`.`features` AS `Особенности`,(select count(`cmpt`.`playground_id`) from `competitions` `cmpt` where (`cmpt`.`playground_id` = `plgt`.`id`)) AS `Сыграно игр` from `playgrounds` `plgt` ;
+
+-- --------------------------------------------------------
+
+--
+-- Структура для представления `streetsv`
+--
+DROP TABLE IF EXISTS `streetsv`;
+
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `streetsv`  AS  select `streets`.`id` AS `ID`,`streets`.`name` AS `Улица` from `streets` ;
+
+-- --------------------------------------------------------
+
+--
+-- Структура для представления `teamsv`
+--
+DROP TABLE IF EXISTS `teamsv`;
+
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `teamsv`  AS  select `tmt`.`id` AS `ID`,`tmt`.`team_name` AS `Навание команды`,concat(`plt`.`name`,' ',`plt`.`surname`) AS `Капитан` from (`teams` `tmt` left join `players` `plt` on((`tmt`.`cap_id` = `plt`.`id`))) ;
+
+-- --------------------------------------------------------
+
+--
+-- Структура для представления `teams_statsv`
+--
+DROP TABLE IF EXISTS `teams_statsv`;
+
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `teams_statsv`  AS  select `tmt`.`id` AS `ID`,`tmt`.`team_name` AS `Команда`,(select concat(`plt`.`name`,' ',`plt`.`surname`) from `players` `plt` where (`plt`.`id` = `tmt`.`cap_id`)) AS `Капитан`,`tmst`.`points_amount` AS `Общее число очков`,`tmst`.`last_week_points` AS `Число очков за последнюю неделю`,`tmst`.`games_amount` AS `Общее число игр`,`tmst`.`effectiveness` AS `Эффективность` from (`teams` `tmt` join `teams_stats` `tmst` on((`tmt`.`id` = `tmst`.`team_id`))) ;
+
+--
+-- Индексы сохранённых таблиц
+--
+
+--
+-- Индексы таблицы `competitions`
+--
+ALTER TABLE `competitions`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `FK_playground_id` (`playground_id`),
+  ADD KEY `FK_team1_id` (`team1_id`),
+  ADD KEY `FK_team2_id` (`team2_id`);
+
+--
+-- Индексы таблицы `competitions_info`
+--
+ALTER TABLE `competitions_info`
+  ADD PRIMARY KEY (`competition_id`,`player_id`),
+  ADD KEY `FK_com_player_id` (`player_id`);
+
+--
+-- Индексы таблицы `players`
+--
+ALTER TABLE `players`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `FK_players_street_id` (`street_id`),
+  ADD KEY `FK_players_team_id` (`team_id`);
+
+--
+-- Индексы таблицы `players_stats`
+--
+ALTER TABLE `players_stats`
+  ADD PRIMARY KEY (`player_id`);
+
+--
+-- Индексы таблицы `playgrounds`
+--
+ALTER TABLE `playgrounds`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `FK_playgrounds_street_id` (`street_id`);
+
+--
+-- Индексы таблицы `streets`
+--
+ALTER TABLE `streets`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Индексы таблицы `teams`
+--
+ALTER TABLE `teams`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `team_name` (`team_name`),
+  ADD UNIQUE KEY `cap_id` (`cap_id`);
+
+--
+-- Индексы таблицы `teams_stats`
+--
+ALTER TABLE `teams_stats`
+  ADD PRIMARY KEY (`team_id`);
+
+--
+-- Индексы таблицы `users`
+--
+ALTER TABLE `users`
+  ADD PRIMARY KEY (`username`);
+
+--
+-- AUTO_INCREMENT для сохранённых таблиц
+--
+
+--
+-- AUTO_INCREMENT для таблицы `competitions`
+--
+ALTER TABLE `competitions`
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+
+--
+-- AUTO_INCREMENT для таблицы `players`
+--
+ALTER TABLE `players`
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
+
+--
+-- AUTO_INCREMENT для таблицы `playgrounds`
+--
+ALTER TABLE `playgrounds`
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+
+--
+-- AUTO_INCREMENT для таблицы `streets`
+--
+ALTER TABLE `streets`
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+
+--
+-- AUTO_INCREMENT для таблицы `teams`
+--
+ALTER TABLE `teams`
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+
+--
+-- Ограничения внешнего ключа сохраненных таблиц
+--
+
+--
+-- Ограничения внешнего ключа таблицы `competitions`
+--
+ALTER TABLE `competitions`
+  ADD CONSTRAINT `FK_playground_id` FOREIGN KEY (`playground_id`) REFERENCES `playgrounds` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  ADD CONSTRAINT `FK_team1_id` FOREIGN KEY (`team1_id`) REFERENCES `teams` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  ADD CONSTRAINT `FK_team2_id` FOREIGN KEY (`team2_id`) REFERENCES `teams` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+--
+-- Ограничения внешнего ключа таблицы `competitions_info`
+--
+ALTER TABLE `competitions_info`
+  ADD CONSTRAINT `FK_com_player_id` FOREIGN KEY (`player_id`) REFERENCES `players` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `FK_competition_id` FOREIGN KEY (`competition_id`) REFERENCES `competitions` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Ограничения внешнего ключа таблицы `players`
+--
+ALTER TABLE `players`
+  ADD CONSTRAINT `FK_players_street_id` FOREIGN KEY (`street_id`) REFERENCES `streets` (`id`) ON UPDATE CASCADE,
+  ADD CONSTRAINT `FK_players_team_id` FOREIGN KEY (`team_id`) REFERENCES `teams` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+--
+-- Ограничения внешнего ключа таблицы `players_stats`
+--
+ALTER TABLE `players_stats`
+  ADD CONSTRAINT `FK_player_id` FOREIGN KEY (`player_id`) REFERENCES `players` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Ограничения внешнего ключа таблицы `playgrounds`
+--
+ALTER TABLE `playgrounds`
+  ADD CONSTRAINT `FK_playgrounds_street_id` FOREIGN KEY (`street_id`) REFERENCES `streets` (`id`) ON UPDATE CASCADE;
+
+--
+-- Ограничения внешнего ключа таблицы `teams`
+--
+ALTER TABLE `teams`
+  ADD CONSTRAINT `FK_cap_id` FOREIGN KEY (`cap_id`) REFERENCES `players` (`id`) ON UPDATE CASCADE;
+
+--
+-- Ограничения внешнего ключа таблицы `teams_stats`
+--
+ALTER TABLE `teams_stats`
+  ADD CONSTRAINT `FK_team_id` FOREIGN KEY (`team_id`) REFERENCES `teams` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+COMMIT;
